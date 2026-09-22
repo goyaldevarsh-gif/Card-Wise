@@ -6,7 +6,8 @@
 <title>CardWise</title>
 <meta name="theme-color" content="#112E55">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CardWise">
@@ -228,6 +229,15 @@
 
   /* My Cards wallet */
   #cardsGrid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+  .backup-section{
+    margin-top:24px; padding-top:20px; border-top:1px solid var(--border);
+  }
+  .backup-title{ font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:6px; }
+  .backup-desc{ font-size:12px; color:var(--ink-soft); line-height:1.5; margin-bottom:12px; }
+  .backup-actions{ display:flex; gap:10px; }
+  .backup-note{ font-size:11.5px; color:var(--ink-soft); margin-top:10px; text-align:center; }
+
   .card-tile{
     background:var(--surface); border:1px solid var(--border); border-radius:18px;
     overflow:hidden; cursor:pointer;
@@ -350,6 +360,17 @@
   <div id="myCardsView" style="display:none;">
     <div class="top-note">Apne saare cards yahan add karo — image, network, fee, sab ek jagah.</div>
     <div id="cardsGrid"></div>
+
+    <div class="backup-section">
+      <div class="backup-title">Backup</div>
+      <div class="backup-desc">Cache clear ya naye phone pe jaane se pehle ek backup file bana lo — sab kuch (cards, photos, use-cases) usmein save ho jayega.</div>
+      <div class="backup-actions">
+        <button class="btn btn-ghost" id="exportBtn">Export backup</button>
+        <button class="btn btn-ghost" id="importBtn">Import backup</button>
+      </div>
+      <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+      <div id="lastBackupNote" class="backup-note"></div>
+    </div>
   </div>
 </main>
 
@@ -1312,6 +1333,71 @@ document.getElementById('cCancelBtn').addEventListener('click', closeCardSheet);
 document.getElementById('cSaveBtn').addEventListener('click', saveCard);
 document.getElementById('cDeleteBtn').addEventListener('click', deleteCard);
 cardSheetBackdrop.addEventListener('click', (e)=>{ if(e.target===cardSheetBackdrop) closeCardSheet(); });
+
+/* ---------- Backup: Export / Import ---------- */
+const LAST_BACKUP_KEY = 'cardwise-last-backup';
+const exportBtn = document.getElementById('exportBtn');
+const importBtn = document.getElementById('importBtn');
+const importFileInput = document.getElementById('importFileInput');
+const lastBackupNote = document.getElementById('lastBackupNote');
+
+function updateLastBackupNote(){
+  const ts = localStorage.getItem(LAST_BACKUP_KEY);
+  lastBackupNote.textContent = ts
+    ? `Last backup: ${new Date(parseInt(ts)).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}`
+    : 'Abhi tak koi backup nahi liya.';
+}
+
+exportBtn.addEventListener('click', ()=>{
+  const backup = {
+    app: 'CardWise', version: 1, exportedAt: new Date().toISOString(),
+    useCases: data, myCards: myCards
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cardwise-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  localStorage.setItem(LAST_BACKUP_KEY, Date.now().toString());
+  updateLastBackupNote();
+  showToast('Backup file download ho gayi');
+});
+
+importBtn.addEventListener('click', ()=> importFileInput.click());
+
+importFileInput.addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const parsed = JSON.parse(ev.target.result);
+      if(!parsed.useCases || !parsed.myCards){
+        showToast('Yeh CardWise backup file nahi lagti');
+        return;
+      }
+      const ok = confirm('Yeh abhi ka saara data overwrite kar dega is backup se. Continue karein?');
+      if(!ok) return;
+      data = parsed.useCases;
+      myCards = parsed.myCards;
+      saveData(data);
+      saveCards();
+      render();
+      renderCards();
+      showToast('Backup restore ho gaya');
+    } catch(err){
+      showToast('File padhi nahi gayi — sahi backup file try karo');
+    }
+  };
+  reader.readAsText(file);
+  importFileInput.value = '';
+});
+
+updateLastBackupNote();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{

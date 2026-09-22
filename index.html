@@ -512,12 +512,8 @@ const DEFAULT_DATA = [
     ["Altura+","1.5%","POS cashback, close alternative."]]],
   ["Offline restaurants / cafes","restaurant cafe dining offline",[
     ["IDFC First Millennia","~1.25%","10X dining category, no minimum spend needed now."]]],
-  ["Movies (BookMyShow / District)","movie movies bookmyshow bms cinema pvr inox ticket",[
-    ["Swiggy HDFC Card","5%","Flat cashback on BookMyShow, no promo code, ₹1,500/cycle shared cap."],
-    ["Altura+","25% off (up to ₹150)","Book via District app, promo code, min 2 tickets ~₹500, once/month."],
-    ["IDFC First Millennia","25% off (up to ₹100)","Via BookMyShow, once a month — check current spend condition."]]],
-  ["District (dining / events)","district dining events zomato",[
-    ["Altura+","up to ₹500 off","Dining category, min ₹6,000, Fri–Sun only, once/month."]]],
+  ["Movies (BookMyShow)","movie movies bookmyshow bms cinema pvr inox ticket district",[
+    ["Swiggy HDFC Card","5%","Standing benefit per HDFC's own card terms — BookMyShow is a listed 5% online-merchant category, no promo code needed."]]],
 ]],
 ["Travel — Domestic",[
   ["Domestic flights / hotels","flight hotel booking domestic travel",[
@@ -536,22 +532,22 @@ const DEFAULT_DATA = [
 ]],
 ["Travel Booking Platforms",[
   ["MakeMyTrip (MMT)","makemytrip mmt flight hotel",[
-    ["Scapia app","4%","Book same fare via Scapia app if available."],
-    ["Amazon Pay ICICI","2-5%","Check live MMT promo — rotates periodically."]]],
+    ["Scapia app","4%","Standing in-app booking rate — check same fare via Scapia app before booking on MMT."],
+    ["Compare price first","-","No standing card benefit specific to MMT — bank promos here rotate and aren't reliable to plan around."]]],
   ["Goibibo","goibibo flight hotel",[
-    ["Compare price first","-","No standout card offer currently — pick cheapest fare, pay via Scapia for forex-free."]]],
+    ["Compare price first","-","No standing card benefit here — pick cheapest fare, pay via Scapia for zero forex if international."]]],
   ["ixigo","ixigo flight train",[
-    ["Scapia RuPay (UPI promo)","up to 10%","RuPay-UPI promo codes rotate — check at checkout."]]],
+    ["Compare price first","-","No standing card benefit here — check Scapia app for the same fare first."]]],
   ["Cleartrip","cleartrip flight hotel",[
-    ["Swiggy HDFC Card","5%","Separate ₹1,500/cycle cap from the Swiggy category."]]],
+    ["Swiggy HDFC Card","5%","Standing benefit — Cleartrip is a listed 5% online-merchant category in HDFC's own card terms."]]],
   ["Yatra","yatra flight hotel",[
-    ["Check live offer","-","RuPay-linked promos have appeared periodically."]]],
+    ["Compare price first","-","No standing card benefit here."]]],
   ["RedBus / AbhiBus","redbus abhibus bus booking",[
     ["Base rate","-","No accelerated card currently — use whichever card is default."]]],
   ["EaseMyTrip","easemytrip flight",[
-    ["Check live offer","-","RuPay-UPI promos have appeared periodically."]]],
+    ["Compare price first","-","No standing card benefit here."]]],
   ["Scapia app (in-house booking)","scapia app booking",[
-    ["Scapia","4%","The most reliable way to actually get the accelerated rate."]]],
+    ["Scapia","4%","The most reliable way to actually get the accelerated rate — this is the card's own product mechanic, not a rotating deal."]]],
 ]],
 ["International",[
   ["International flights / hotels","international flight hotel abroad",[
@@ -694,8 +690,7 @@ const DEFAULT_DATA = [
   ["Courier / parcel (Porter, Dunzo)","courier parcel porter dunzo",[
     ["Amazon Pay ICICI","1%","Base rate — no card specializes here."]]],
   ["Event tickets (concerts, sports)","event tickets concert sports",[
-    ["Swiggy HDFC Card","5%","Entertainment category."],
-    ["Altura+","25% off","Via District, if the event is listed there."]]],
+    ["Swiggy HDFC Card","5%","Standing Entertainment category benefit per HDFC's own card terms."]]],
   ["Charity / donations","charity donation",[
     ["Amazon Pay ICICI","1%",""]]],
   ["Wedding / social event shopping","wedding shopping social event",[
@@ -707,11 +702,55 @@ const DEFAULT_DATA = [
 ]]
 ];
 
+const CONTENT_VERSION = 2;
+
+// Flatten DEFAULT_DATA into a lookup by name, for patching existing installs.
+function defaultDataLookup(){
+  const map = {};
+  DEFAULT_DATA.forEach(([section, items])=>{
+    items.forEach(([name, tags, options])=>{
+      map[name] = { section, tags, options: options.map(([mode,rate,note])=>({mode,rate,note})) };
+    });
+  });
+  return map;
+}
+
+// Removed in v2: promo-code / rotating-deal based names that no longer have a
+// curated replacement at all (renamed ones are handled by the lookup refresh below).
+const REMOVED_IN_V2 = ['District (dining / events)'];
+
+function patchStaleContent(parsed){
+  const version = parseInt(localStorage.getItem('cardwise-content-version') || '1');
+  if(version >= CONTENT_VERSION) return parsed;
+
+  const lookup = defaultDataLookup();
+  let patched = parsed.filter(item => !(item.custom === false && REMOVED_IN_V2.includes(item.name)));
+
+  patched.forEach(item=>{
+    if(item.custom === false && lookup[item.name]){
+      // Refresh only bank-published/standing details — never touches user's own cards or custom entries.
+      item.options = lookup[item.name].options;
+      item.tags = lookup[item.name].tags;
+    }
+  });
+
+  // Old "Movies (BookMyShow / District)" got renamed — carry it over to the new name if present.
+  const oldMovies = patched.find(i => i.custom === false && i.name === 'Movies (BookMyShow / District)');
+  if(oldMovies && lookup['Movies (BookMyShow)']){
+    oldMovies.name = 'Movies (BookMyShow)';
+    oldMovies.options = lookup['Movies (BookMyShow)'].options;
+    oldMovies.tags = lookup['Movies (BookMyShow)'].tags;
+  }
+
+  localStorage.setItem('cardwise-content-version', CONTENT_VERSION.toString());
+  return patched;
+}
+
 function loadData(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw){
     try{
-      const parsed = JSON.parse(raw);
+      let parsed = JSON.parse(raw);
       // migrate old single mode/rate/note schema to options array
       parsed.forEach(item=>{
         if(!item.options){
@@ -720,6 +759,8 @@ function loadData(){
         }
         if(item.tags === undefined) item.tags = '';
       });
+      parsed = patchStaleContent(parsed);
+      saveData(parsed);
       return parsed;
     }catch(e){}
   }
@@ -734,6 +775,7 @@ function loadData(){
       });
     });
   });
+  localStorage.setItem('cardwise-content-version', CONTENT_VERSION.toString());
   saveData(seeded);
   return seeded;
 }

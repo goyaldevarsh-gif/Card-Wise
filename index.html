@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CardWise</title>
+<meta name="theme-color" content="#2E2C87">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CardWise">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFAF7;
+    --surface:#FFFFFF;
+    --ink:#15151F;
+    --ink-soft:#5D5D6E;
+    --border:#E7E6E1;
+    --primary:#2E2C87;
+    --primary-ink:#FFFFFF;
+    --accent:#12B76A;
+    --accent-soft:#E7F8EF;
+    --warn:#F97316;
+    --warn-soft:#FFF1E6;
+    --radius:16px;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#131319; --surface:#1C1C26; --ink:#F2F2F5; --ink-soft:#A3A3B2;
+      --border:#2C2C38; --primary:#8C8AFF; --primary-ink:#131319;
+      --accent:#3ADE8B; --accent-soft:#123324; --warn:#FFB067; --warn-soft:#3A2612;
+    }
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:'Plus Jakarta Sans', sans-serif; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  header{
+    position:sticky; top:0; z-index:20;
+    background:var(--bg);
+    padding: calc(env(safe-area-inset-top,0px) + 18px) 18px 10px;
+    border-bottom:1px solid var(--border);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .brand-mark{
+    width:38px; height:38px; border-radius:11px; background:var(--primary);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .brand-mark svg{ width:20px; height:20px; }
+  .brand-name{ font-size:20px; font-weight:800; letter-spacing:-0.02em; }
+  .brand-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:-2px; }
+
+  .tabs{ display:flex; gap:8px; margin-bottom:12px; }
+  .tab-btn{
+    flex:1; padding:10px; border-radius:11px; border:1.5px solid var(--border);
+    background:var(--surface); color:var(--ink-soft); font-family:'Inter'; font-weight:700;
+    font-size:13.5px; cursor:pointer;
+  }
+  .tab-btn.active{ background:var(--primary); color:var(--primary-ink); border-color:var(--primary); }
+
+  .search-wrap{ position:relative; }
+  .search-wrap input{
+    width:100%; padding:13px 44px 13px 16px; border-radius:13px;
+    border:1.5px solid var(--border); background:var(--surface); color:var(--ink);
+    font-family:'Inter'; font-size:15px; outline:none;
+  }
+  .search-wrap input:focus{ border-color:var(--primary); }
+  .search-wrap .clear-btn{
+    position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    width:32px; height:32px; border:none; background:transparent; color:var(--ink-soft);
+    font-size:18px; cursor:pointer; display:none;
+  }
+  .search-wrap.has-val .clear-btn{ display:block; }
+
+  main{ padding: 14px 18px 110px; max-width:640px; margin:0 auto; }
+
+  .empty-state{
+    text-align:center; padding:60px 20px; color:var(--ink-soft);
+  }
+  .empty-state .glyph{ font-size:34px; margin-bottom:10px; }
+  .empty-state p{ font-size:14px; margin:4px 0; }
+
+  .section{ margin-bottom:22px; }
+  .section-title{
+    font-size:12.5px; font-weight:700; text-transform:none; letter-spacing:0.01em;
+    color:var(--ink-soft); margin:0 0 8px 4px;
+  }
+
+  .item{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 14px; margin-bottom:9px; cursor:pointer;
+    transition:border-color .12s ease;
+  }
+  .item:active{ border-color:var(--primary); }
+  .item-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .item-name{ font-size:15px; font-weight:600; line-height:1.35; }
+  .item-badge{
+    flex-shrink:0; font-size:11.5px; font-weight:700; padding:5px 9px; border-radius:20px;
+    background:var(--accent-soft); color:var(--accent); white-space:nowrap;
+  }
+  .item-mode{ font-size:13.5px; color:var(--ink-soft); margin-top:5px; }
+  .item-mode b{ color:var(--ink); font-weight:600; }
+  .item-note{ font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.4; }
+  .custom-tag{
+    display:inline-block; font-size:10.5px; font-weight:700; color:var(--warn);
+    background:var(--warn-soft); padding:2px 7px; border-radius:20px; margin-left:6px;
+  }
+
+  .fab{
+    position:fixed; right:18px; bottom:calc(22px + env(safe-area-inset-bottom,0px));
+    width:56px; height:56px; border-radius:50%; background:var(--primary); color:var(--primary-ink);
+    border:none; font-size:28px; line-height:56px; text-align:center; cursor:pointer;
+    box-shadow:0 8px 24px rgba(46,44,135,0.35); z-index:30;
+  }
+  .fab:active{ transform:scale(0.94); }
+
+  /* Modal / sheet */
+  .sheet-backdrop{
+    position:fixed; inset:0; background:rgba(10,10,20,0.45); z-index:40;
+    display:none; align-items:flex-end;
+  }
+  .sheet-backdrop.open{ display:flex; }
+  .sheet{
+    background:var(--surface); width:100%; max-width:640px; margin:0 auto;
+    border-radius:22px 22px 0 0; padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));
+    max-height:88vh; overflow-y:auto;
+    animation:slideUp .18s ease-out;
+  }
+  @keyframes slideUp{ from{ transform:translateY(30px); opacity:0.4; } to{ transform:translateY(0); opacity:1; } }
+  .sheet-handle{ width:38px; height:4px; background:var(--border); border-radius:4px; margin:0 auto 16px; }
+  .sheet h2{ font-size:18px; margin:0 0 16px; }
+  .field{ margin-bottom:13px; }
+  .field label{ display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
+  .field input, .field textarea, .field select{
+    width:100%; padding:11px 13px; border-radius:11px; border:1.5px solid var(--border);
+    background:var(--bg); color:var(--ink); font-family:'Inter'; font-size:14.5px; outline:none;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--primary); }
+  .field textarea{ resize:vertical; min-height:56px; }
+  .sheet-actions{ display:flex; gap:10px; margin-top:18px; }
+  .btn{
+    flex:1; padding:13px; border-radius:12px; border:none; font-size:14.5px; font-weight:700;
+    font-family:'Inter'; cursor:pointer;
+  }
+  .btn-primary{ background:var(--primary); color:var(--primary-ink); }
+  .btn-ghost{ background:var(--bg); color:var(--ink); border:1.5px solid var(--border); }
+  .btn-danger{ background:var(--warn-soft); color:var(--warn); }
+  .btn:active{ transform:scale(0.97); }
+
+  .toast{
+    position:fixed; left:50%; bottom:calc(100px + env(safe-area-inset-bottom,0px));
+    transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--bg);
+    padding:11px 18px; border-radius:12px; font-size:13.5px; font-weight:600;
+    opacity:0; pointer-events:none; transition:all .2s ease; z-index:50; white-space:nowrap;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .top-note{
+    background:var(--accent-soft); color:var(--accent); border-radius:12px; padding:10px 13px;
+    font-size:12.5px; margin-bottom:16px; line-height:1.4; font-weight:500;
+  }
+
+  /* My Cards wallet */
+  #cardsGrid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .card-tile{
+    background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    overflow:hidden; cursor:pointer;
+  }
+  .card-tile:active{ border-color:var(--primary); }
+  .card-tile-img{
+    width:100%; aspect-ratio:1.586/1; object-fit:cover; display:block; background:var(--primary);
+  }
+  .card-tile-img.placeholder{
+    display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700;
+    font-size:14px; text-align:center; padding:10px; background:linear-gradient(135deg,var(--primary),#4B49C4);
+  }
+  .card-tile-body{ padding:10px 12px 12px; }
+  .card-tile-name{ font-size:13.5px; font-weight:700; line-height:1.3; }
+  .card-tile-meta{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; }
+  .card-tile-fee{ font-size:11px; color:var(--ink-soft); margin-top:5px; }
+  .card-tile-fee b{ color:var(--accent); }
+
+  .add-card-tile{
+    border:1.5px dashed var(--border); border-radius:18px; aspect-ratio:1.05/1;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:var(--ink-soft); cursor:pointer; gap:6px; background:transparent;
+  }
+  .add-card-tile .plus{ font-size:26px; color:var(--primary); }
+  .add-card-tile span{ font-size:12px; font-weight:600; }
+
+  .img-upload{
+    display:flex; align-items:center; gap:12px; padding:10px; border:1.5px dashed var(--border);
+    border-radius:12px; cursor:pointer; margin-bottom:13px;
+  }
+  .img-upload-preview{
+    width:64px; height:40px; border-radius:7px; object-fit:cover; background:var(--bg);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:10px;
+  }
+  .img-upload-text{ font-size:12.5px; color:var(--ink-soft); }
+  .img-upload-text b{ color:var(--ink); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="5" width="20" height="14" rx="2.5" fill="#FAFAF7"/>
+        <rect x="2" y="9" width="20" height="3" fill="#1B1A4D"/>
+        <circle cx="18" cy="16.5" r="3.2" fill="#12B76A"/>
+        <path d="M16.4 16.5l1.1 1.1 2-2.1" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">CardWise</div>
+      <div class="brand-sub">Type kar, best card turant mil jayega</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" id="tabRecommend" data-tab="recommend">Best Card</button>
+    <button class="tab-btn" id="tabMyCards" data-tab="mycards">My Cards</button>
+  </div>
+  <div class="search-wrap" id="searchWrap">
+    <input type="text" id="searchInput" placeholder="Swiggy, MMT, insurance, fuel..." autocomplete="off">
+    <button class="clear-btn" id="clearBtn">&times;</button>
+  </div>
+</header>
+
+<main>
+  <div id="recommendView">
+    <div class="top-note" id="topNote">Offers change often — jo entry purani lage, usse tap karke edit kar do.</div>
+    <div id="results"></div>
+  </div>
+
+  <div id="myCardsView" style="display:none;">
+    <div class="top-note">Apne saare cards yahan add karo — image, network, fee, sab ek jagah.</div>
+    <div id="cardsGrid"></div>
+  </div>
+</main>
+
+<button class="fab" id="addBtn" aria-label="Add">+</button>
+
+<div class="sheet-backdrop" id="sheetBackdrop">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2 id="sheetTitle">Add entry</h2>
+    <div class="field">
+      <label>Kis cheez ke liye (name)</label>
+      <input type="text" id="fName" placeholder="e.g. IKEA shopping">
+    </div>
+    <div class="field">
+      <label>Section</label>
+      <input type="text" id="fSection" list="sectionList" placeholder="e.g. Shopping">
+      <datalist id="sectionList"></datalist>
+    </div>
+    <div class="field">
+      <label>Recommended card / mode</label>
+      <input type="text" id="fMode" placeholder="e.g. Amazon Pay ICICI">
+    </div>
+    <div class="field">
+      <label>Rate / benefit tag (chhota)</label>
+      <input type="text" id="fRate" placeholder="e.g. 5%">
+    </div>
+    <div class="field">
+      <label>Note (optional)</label>
+      <textarea id="fNote" placeholder="Cap, condition, kuch bhi extra detail"></textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn">Save</button>
+    </div>
+    <div class="sheet-actions" id="deleteRow" style="display:none;">
+      <button class="btn btn-danger" id="deleteBtn">Delete this entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-backdrop" id="cardSheetBackdrop">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2 id="cardSheetTitle">Add card</h2>
+
+    <label class="img-upload" for="cImgInput">
+      <div class="img-upload-preview" id="cImgPreview">No image</div>
+      <div class="img-upload-text"><b>Card ka photo</b><br>Tap karke upload karo (optional)</div>
+    </label>
+    <input type="file" id="cImgInput" accept="image/*" style="display:none;">
+
+    <div class="field">
+      <label>Card ka naam</label>
+      <input type="text" id="cName" placeholder="e.g. Swiggy HDFC Card">
+    </div>
+    <div class="field">
+      <label>Bank / Issuer</label>
+      <input type="text" id="cBank" placeholder="e.g. HDFC Bank">
+    </div>
+    <div class="field">
+      <label>Network</label>
+      <select id="cNetwork">
+        <option>Visa</option>
+        <option>Mastercard</option>
+        <option>RuPay</option>
+        <option>American Express</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Last 4 digits (optional)</label>
+      <input type="text" id="cLast4" placeholder="e.g. 4417" maxlength="4" inputmode="numeric">
+    </div>
+    <div class="field">
+      <label>Annual fee / waiver condition</label>
+      <input type="text" id="cFee" placeholder="e.g. ₹500, waived on ₹2L spend">
+    </div>
+    <div class="field">
+      <label>Key benefit (one line)</label>
+      <textarea id="cBenefit" placeholder="e.g. 10% cashback on Swiggy app, cap ₹1,500/cycle"></textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="cCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="cSaveBtn">Save</button>
+    </div>
+    <div class="sheet-actions" id="cDeleteRow" style="display:none;">
+      <button class="btn btn-danger" id="cDeleteBtn">Delete this card</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'cardwise-data-v1';
+
+const DEFAULT_DATA = [
+["Food & Quick Commerce",[
+  ["Swiggy (Food / Instamart / Dineout)","Swiggy HDFC Card","10%","Cap ₹1,500/cycle. Min ₹249 for 10% on app spends."],
+  ["Zepto","Swiggy HDFC Card","1%","Not an accelerated category — better switch this spend to Swiggy Instamart for 10%."],
+  ["Blinkit","Swiggy HDFC Card","1-5%","Check current MCC — some listings give 5%, others base 1%."],
+  ["Zomato","Amazon Pay ICICI","2%","Via Amazon Pay Login & Pay route."],
+  ["BigBasket / grocery","Amazon Pay ICICI","1%","Altura+ POS 1.5% is close alternative."],
+  ["Offline restaurants / cafes","IDFC First Millennia","~1.25%","10X dining category, no minimum spend needed now."],
+  ["District (dining / events / movies)","Altura+","25% off","Up to ₹150 on District movie bookings, monthly cap."],
+]],
+["Travel — Domestic",[
+  ["Domestic flights / hotels","Scapia (in-app booking)","4%","Book via Scapia app itself to get the accelerated rate."],
+  ["Bus / train (IRCTC)","Scapia app / IDFC Millennia","1-4%","Scapia app if listed, else IDFC base 1X."],
+  ["Cabs (Uber / Ola)","Swiggy HDFC Card","5%","Local Cabs MCC category."],
+  ["Domestic airport lounge","Scapia","Free","Unlocks at ₹20,000/month combined Visa+RuPay spend."],
+  ["Fuel / petrol (IOCL)","HDFC Indian Oil","5%","Capped Fuel Points, resets monthly."],
+  ["Car rental","Scapia app","Varies","Check in-app listing first."],
+]],
+["Travel Booking Platforms",[
+  ["MakeMyTrip (MMT)","Amazon Pay ICICI / Scapia app","2-5%","Check live MMT promo for card; else book via Scapia app for 4%."],
+  ["Goibibo","Compare price first","-","No standout card offer currently — pick cheapest fare, pay via Scapia for forex-free."],
+  ["ixigo","Scapia RuPay (UPI promo)","up to 10%","RuPay-UPI promo codes rotate — check at checkout."],
+  ["Cleartrip","Swiggy HDFC Card","5%","Separate ₹1,500/cycle cap from the Swiggy category."],
+  ["Yatra","Check live offer","-","RuPay-linked promos have appeared periodically."],
+  ["RedBus / AbhiBus","Base rate","-","No accelerated card currently — use whichever card is default."],
+  ["EaseMyTrip","Check live offer","-","RuPay-UPI promos have appeared periodically."],
+  ["Scapia app (in-house booking)","Scapia","4%","The most reliable way to actually get the accelerated rate."],
+]],
+["International",[
+  ["International flights / hotels","Scapia","4% + 0% forex","Book via Scapia app for both benefits together."],
+  ["Forex / currency spends","Scapia","0% markup","Zero forex markup — best of all 6 cards for this."],
+  ["International lounge access","—","Gap","None of the current cards cover this — worth flagging if int'l travel increases."],
+  ["Visa application fees","Scapia","0% forex","Avoids the 3.5% markup other cards would add."],
+  ["Travel insurance (int'l)","Amazon Pay ICICI","1%","Weak across the board — no card specializes here."],
+  ["Overseas SIM / roaming","Scapia","0% forex",""],
+  ["Duty-free shopping","Scapia","0% forex",""],
+  ["International conference / CME fees","Scapia","0% forex","If paid by card in foreign currency."],
+  ["Foreign course / university fees","Scapia","0% forex",""],
+  ["Overseas online shopping (Amazon.com etc)","Scapia","0% forex","Saves the markup on non-INR billing."],
+  ["International SaaS / journal subscriptions","Scapia","0% forex","If billed in USD."],
+]],
+["Shopping",[
+  ["Amazon","Amazon Pay ICICI","5%","Prime members; 3% non-Prime."],
+  ["Flipkart / Myntra / Nykaa","Swiggy HDFC Card","5%","Separate online-merchant cap."],
+  ["Sneakers / fragrances / electronics","Swiggy HDFC Card","5%","If merchant is in the 5% MCC list, else Amazon Pay 1%."],
+  ["Furniture / home decor","Amazon Pay ICICI / Altura+","1-1.5%",""],
+  ["Jewelry","Altura+","1.5%","No exclusion here, unlike most other cards."],
+]],
+["Entertainment",[
+  ["Movie tickets (BookMyShow)","Swiggy HDFC Card","5%","Entertainment category."],
+  ["OTT subscriptions","Swiggy HDFC Card","5%","Netflix, Hotstar included in the 5% list."],
+  ["Music streaming","Swiggy HDFC Card","5%","Else Amazon Pay 1% base."],
+  ["Gaming / app purchases","Amazon Pay ICICI","1%","Base rate, no category card exists for this."],
+]],
+["Bills & Utilities",[
+  ["Electricity / water / gas","CRED (pay via Altura+ or Amazon Pay)","1.5-2%","CRED adds its own coins on top of the underlying card rate."],
+  ["Mobile / broadband / DTH","Amazon Pay ICICI","2%","Via Amazon Pay wallet route."],
+]],
+["Health & Insurance",[
+  ["Health / term insurance premium","Altura+","0.25%","Weak, but the only card that covers this category at all."],
+  ["Pharmacy (1mg / PharmEasy)","Swiggy HDFC Card","5%","Pharmacies MCC category."],
+  ["Diagnostic labs","Amazon Pay ICICI","1%","Base rate."],
+  ["Gym / fitness membership","Swiggy HDFC Card","5%","If the gym partner is in the merchant list, else base rate."],
+]],
+["Professional / Medical Practice",[
+  ["CME / conference fees (domestic)","Base rate","1%","No card specializes here — pick whichever is fee-free at the time."],
+  ["Journal subscriptions / APC (foreign billing)","Scapia","0% forex","Better than Amazon Pay if billed in USD."],
+  ["Surgical equipment / instruments","Amazon Pay ICICI / Altura+","1-1.5%","Large uncapped spend — no exclusion needed."],
+  ["Clinic consumables","Altura+","1.5%","POS cashback, uncapped-ish."],
+  ["Software subscriptions (Claude, Canva, hosting)","Amazon Pay ICICI","1%",""],
+  ["Domain / hosting renewals","Amazon Pay ICICI","1%",""],
+  ["Medical council / association fees","Altura+","0.25%","No dedicated card benefit exists."],
+  ["Malpractice / indemnity insurance","Altura+","0.25%",""],
+  ["CA / tax filing, GST payments","Altura+","0.25%","Utility-type spend, no exclusion."],
+]],
+["Education",[
+  ["Online courses","Amazon Pay ICICI","1%",""],
+  ["Books / e-books","Amazon Pay ICICI","5%","If bought via Amazon."],
+]],
+["Vehicle",[
+  ["Vehicle EMI","Direct bank EMI","-","Usually no card benefit — avoid routing through card."],
+  ["Vehicle insurance","Altura+","0.25%",""],
+  ["FASTag / toll","IDFC Millennia","~1%","Fair-usage capped; or link FASTag to Scapia RuPay via UPI."],
+  ["Vehicle servicing / repairs","Altura+","1.5%","Else Swiggy card 5% if listed."],
+  ["Parking apps","UPI (PhonePe/Paytm)","-","Small amounts — reward is negligible either way."],
+]],
+["Home & Family",[
+  ["Rent","CRED (via Altura+ or Amazon Pay)","1-1.5%","Platform fee applies — check the math is actually worth it."],
+  ["Home / clinic maintenance","Altura+","1.5%",""],
+  ["Domestic help (Urban Company)","Amazon Pay ICICI","2%","Listed partner merchant."],
+  ["Gifts","Swiggy HDFC Card","5%","If bought via Myntra/Amazon-type store."],
+  ["Office supplies","Amazon Pay ICICI","1%",""],
+]],
+["Personal Care",[
+  ["Salon / spa","Altura+","1.5%","POS cashback."],
+  ["Laundry / dry cleaning","Altura+","1.5%",""],
+]],
+["Financial / Recurring",[
+  ["SIP / mutual fund investments","—","-","Most platforms don't allow card payment — skip."],
+  ["Other card's bill payment","CRED","Varies","Extra coins on top of underlying card."],
+  ["Loan EMI conversion","Card's own EMI facility","-","Use IDFC/Swiggy in-built EMI tools, not a fresh spend."],
+  ["Tax payments","Altura+","0.25%","Utility-type spend."],
+  ["Locker rent / demat charges","Altura+","0.25%",""],
+]],
+["Misc",[
+  ["Courier / parcel (Porter, Dunzo)","Amazon Pay ICICI","1%","Base rate — no card specializes here."],
+  ["Event tickets (concerts, sports)","Swiggy HDFC Card","5%","Entertainment category, or District via Altura+."],
+  ["Charity / donations","Amazon Pay ICICI","1%",""],
+  ["Wedding / social event shopping","Swiggy HDFC Card","5%","Myntra/Amazon-type categories."],
+  ["Content creation gear / subscriptions","Amazon Pay ICICI","1%",""],
+  ["Group trip expenses","Scapia","4%","Travel-related, book via app where possible."],
+]]
+];
+
+function loadData(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{ return JSON.parse(raw); }catch(e){}
+  }
+  const seeded = [];
+  let id = 1;
+  DEFAULT_DATA.forEach(([section, items])=>{
+    items.forEach(([name, mode, rate, note])=>{
+      seeded.push({ id: id++, section, name, mode, rate, note, custom:false });
+    });
+  });
+  saveData(seeded);
+  return seeded;
+}
+function saveData(d){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+}
+
+let data = loadData();
+let editingId = null;
+
+const resultsEl = document.getElementById('results');
+const searchInput = document.getElementById('searchInput');
+const searchWrap = document.getElementById('searchWrap');
+const clearBtn = document.getElementById('clearBtn');
+const sheetBackdrop = document.getElementById('sheetBackdrop');
+const sheetTitle = document.getElementById('sheetTitle');
+const fName = document.getElementById('fName');
+const fSection = document.getElementById('fSection');
+const fMode = document.getElementById('fMode');
+const fRate = document.getElementById('fRate');
+const fNote = document.getElementById('fNote');
+const deleteRow = document.getElementById('deleteRow');
+const sectionList = document.getElementById('sectionList');
+const toast = document.getElementById('toast');
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(()=> toast.classList.remove('show'), 1600);
+}
+
+function uniqueSections(){
+  return [...new Set(data.map(d=>d.section))];
+}
+
+function render(){
+  const q = searchInput.value.trim().toLowerCase();
+  searchWrap.classList.toggle('has-val', q.length>0);
+
+  const filtered = q
+    ? data.filter(d => (d.name+' '+d.mode+' '+d.section+' '+(d.note||'')).toLowerCase().includes(q))
+    : data;
+
+  if(filtered.length === 0){
+    resultsEl.innerHTML = `<div class="empty-state">
+      <div class="glyph">🔍</div>
+      <p><strong>Kuch nahi mila</strong></p>
+      <p>Naya add karne ke liye neeche + dabao.</p>
+    </div>`;
+    return;
+  }
+
+  const bySection = {};
+  filtered.forEach(item=>{
+    (bySection[item.section] = bySection[item.section] || []).push(item);
+  });
+
+  let html = '';
+  Object.keys(bySection).forEach(section=>{
+    html += `<div class="section"><div class="section-title">${escapeHtml(section)}</div>`;
+    bySection[section].forEach(item=>{
+      html += `<div class="item" data-id="${item.id}">
+        <div class="item-top">
+          <div class="item-name">${escapeHtml(item.name)}${item.custom ? '<span class="custom-tag">Custom</span>' : ''}</div>
+          ${item.rate ? `<div class="item-badge mono">${escapeHtml(item.rate)}</div>` : ''}
+        </div>
+        <div class="item-mode">Use: <b>${escapeHtml(item.mode)}</b></div>
+        ${item.note ? `<div class="item-note">${escapeHtml(item.note)}</div>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  resultsEl.innerHTML = html;
+
+  document.querySelectorAll('.item').forEach(el=>{
+    el.addEventListener('click', ()=> openEdit(parseInt(el.dataset.id)));
+  });
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function refreshSectionList(){
+  sectionList.innerHTML = uniqueSections().map(s=>`<option value="${escapeHtml(s)}"></option>`).join('');
+}
+
+function openAdd(){
+  editingId = null;
+  sheetTitle.textContent = 'Add entry';
+  fName.value=''; fSection.value=''; fMode.value=''; fRate.value=''; fNote.value='';
+  deleteRow.style.display = 'none';
+  refreshSectionList();
+  sheetBackdrop.classList.add('open');
+  setTimeout(()=> fName.focus(), 200);
+}
+
+function openEdit(id){
+  const item = data.find(d=>d.id===id);
+  if(!item) return;
+  editingId = id;
+  sheetTitle.textContent = 'Edit entry';
+  fName.value = item.name;
+  fSection.value = item.section;
+  fMode.value = item.mode;
+  fRate.value = item.rate || '';
+  fNote.value = item.note || '';
+  deleteRow.style.display = 'flex';
+  refreshSectionList();
+  sheetBackdrop.classList.add('open');
+}
+
+function closeSheet(){
+  sheetBackdrop.classList.remove('open');
+}
+
+function save(){
+  const name = fName.value.trim();
+  const section = fSection.value.trim() || 'Mera Apna';
+  const mode = fMode.value.trim();
+  const rate = fRate.value.trim();
+  const note = fNote.value.trim();
+
+  if(!name || !mode){
+    showToast('Naam aur card dono chahiye');
+    return;
+  }
+
+  if(editingId){
+    const item = data.find(d=>d.id===editingId);
+    item.name = name; item.section = section; item.mode = mode; item.rate = rate; item.note = note;
+    showToast('Update ho gaya');
+  } else {
+    const newId = data.length ? Math.max(...data.map(d=>d.id))+1 : 1;
+    data.push({ id:newId, section, name, mode, rate, note, custom:true });
+    showToast('Add ho gaya');
+  }
+  saveData(data);
+  closeSheet();
+  render();
+}
+
+function del(){
+  if(!editingId) return;
+  data = data.filter(d=>d.id!==editingId);
+  saveData(data);
+  closeSheet();
+  render();
+  showToast('Delete ho gaya');
+}
+
+searchInput.addEventListener('input', render);
+clearBtn.addEventListener('click', ()=>{ searchInput.value=''; render(); searchInput.focus(); });
+document.getElementById('cancelBtn').addEventListener('click', closeSheet);
+document.getElementById('saveBtn').addEventListener('click', save);
+document.getElementById('deleteBtn').addEventListener('click', del);
+sheetBackdrop.addEventListener('click', (e)=>{ if(e.target===sheetBackdrop) closeSheet(); });
+
+render();
+
+/* ---------- My Cards wallet ---------- */
+const CARDS_KEY = 'cardwise-mycards-v1';
+let myCards = JSON.parse(localStorage.getItem(CARDS_KEY) || '[]');
+let editingCardId = null;
+let pendingImg = null;
+
+const cardsGrid = document.getElementById('cardsGrid');
+const recommendView = document.getElementById('recommendView');
+const myCardsView = document.getElementById('myCardsView');
+const cardSheetBackdrop = document.getElementById('cardSheetBackdrop');
+const cardSheetTitle = document.getElementById('cardSheetTitle');
+const cImgInput = document.getElementById('cImgInput');
+const cImgPreview = document.getElementById('cImgPreview');
+const cName = document.getElementById('cName');
+const cBank = document.getElementById('cBank');
+const cNetwork = document.getElementById('cNetwork');
+const cLast4 = document.getElementById('cLast4');
+const cFee = document.getElementById('cFee');
+const cBenefit = document.getElementById('cBenefit');
+const cDeleteRow = document.getElementById('cDeleteRow');
+
+let activeTab = 'recommend';
+
+function switchTab(tab){
+  activeTab = tab;
+  document.getElementById('tabRecommend').classList.toggle('active', tab==='recommend');
+  document.getElementById('tabMyCards').classList.toggle('active', tab==='mycards');
+  recommendView.style.display = tab==='recommend' ? 'block' : 'none';
+  myCardsView.style.display = tab==='mycards' ? 'block' : 'none';
+  searchWrap.style.display = tab==='recommend' ? 'block' : 'none';
+  if(tab==='mycards') renderCards();
+}
+document.getElementById('tabRecommend').addEventListener('click', ()=>switchTab('recommend'));
+document.getElementById('tabMyCards').addEventListener('click', ()=>switchTab('mycards'));
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  if(activeTab==='mycards') openCardAdd(); else openAdd();
+});
+
+function saveCards(){ localStorage.setItem(CARDS_KEY, JSON.stringify(myCards)); }
+
+function renderCards(){
+  let html = '';
+  myCards.forEach(c=>{
+    html += `<div class="card-tile" data-id="${c.id}">
+      ${c.img
+        ? `<img class="card-tile-img" src="${c.img}" alt="${escapeHtml(c.name)}">`
+        : `<div class="card-tile-img placeholder">${escapeHtml(c.name || 'Card')}</div>`}
+      <div class="card-tile-body">
+        <div class="card-tile-name">${escapeHtml(c.name)}</div>
+        <div class="card-tile-meta">${escapeHtml(c.bank || '')}${c.bank && c.network ? ' · ' : ''}${escapeHtml(c.network || '')}${c.last4 ? ' •• ' + escapeHtml(c.last4) : ''}</div>
+        ${c.fee ? `<div class="card-tile-fee"><b>Fee:</b> ${escapeHtml(c.fee)}</div>` : ''}
+      </div>
+    </div>`;
+  });
+  html += `<div class="add-card-tile" id="addCardTile"><div class="plus">+</div><span>Add card</span></div>`;
+  cardsGrid.innerHTML = html;
+
+  document.querySelectorAll('.card-tile').forEach(el=>{
+    el.addEventListener('click', ()=> openCardEdit(parseInt(el.dataset.id)));
+  });
+  document.getElementById('addCardTile').addEventListener('click', openCardAdd);
+}
+
+function resetCardForm(){
+  cName.value=''; cBank.value=''; cNetwork.value='Visa'; cLast4.value=''; cFee.value=''; cBenefit.value='';
+  pendingImg = null;
+  cImgPreview.innerHTML = 'No image';
+  cImgPreview.style.padding='0';
+}
+
+function openCardAdd(){
+  editingCardId = null;
+  cardSheetTitle.textContent = 'Add card';
+  resetCardForm();
+  cDeleteRow.style.display = 'none';
+  cardSheetBackdrop.classList.add('open');
+}
+
+function openCardEdit(id){
+  const c = myCards.find(x=>x.id===id);
+  if(!c) return;
+  editingCardId = id;
+  cardSheetTitle.textContent = 'Edit card';
+  cName.value = c.name; cBank.value = c.bank||''; cNetwork.value = c.network||'Visa';
+  cLast4.value = c.last4||''; cFee.value = c.fee||''; cBenefit.value = c.benefit||'';
+  pendingImg = c.img || null;
+  if(pendingImg){
+    cImgPreview.innerHTML = `<img src="${pendingImg}" style="width:100%;height:100%;object-fit:cover;border-radius:7px;">`;
+  } else {
+    cImgPreview.innerHTML = 'No image';
+  }
+  cDeleteRow.style.display = 'flex';
+  cardSheetBackdrop.classList.add('open');
+}
+
+function closeCardSheet(){ cardSheetBackdrop.classList.remove('open'); }
+
+cImgInput.addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const maxW = 480;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      pendingImg = canvas.toDataURL('image/jpeg', 0.8);
+      cImgPreview.innerHTML = `<img src="${pendingImg}" style="width:100%;height:100%;object-fit:cover;border-radius:7px;">`;
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function saveCard(){
+  const name = cName.value.trim();
+  if(!name){ showToast('Card ka naam daalo'); return; }
+  const payload = {
+    name, bank: cBank.value.trim(), network: cNetwork.value, last4: cLast4.value.trim(),
+    fee: cFee.value.trim(), benefit: cBenefit.value.trim(), img: pendingImg
+  };
+  if(editingCardId){
+    const c = myCards.find(x=>x.id===editingCardId);
+    Object.assign(c, payload);
+    showToast('Card update ho gaya');
+  } else {
+    const newId = myCards.length ? Math.max(...myCards.map(x=>x.id))+1 : 1;
+    myCards.push({ id:newId, ...payload });
+    showToast('Card add ho gaya');
+  }
+  saveCards();
+  closeCardSheet();
+  renderCards();
+}
+
+function deleteCard(){
+  if(!editingCardId) return;
+  myCards = myCards.filter(x=>x.id!==editingCardId);
+  saveCards();
+  closeCardSheet();
+  renderCards();
+  showToast('Card delete ho gaya');
+}
+
+document.getElementById('cCancelBtn').addEventListener('click', closeCardSheet);
+document.getElementById('cSaveBtn').addEventListener('click', saveCard);
+document.getElementById('cDeleteBtn').addEventListener('click', deleteCard);
+cardSheetBackdrop.addEventListener('click', (e)=>{ if(e.target===cardSheetBackdrop) closeCardSheet(); });
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>

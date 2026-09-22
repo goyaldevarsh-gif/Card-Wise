@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CardWise</title>
-<meta name="theme-color" content="#2E2C87">
+<meta name="theme-color" content="#112E55">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
 <style>
   :root{
     --bg:#FAFAF7;
@@ -55,10 +56,8 @@
   }
   .brand{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
   .brand-mark{
-    width:38px; height:38px; border-radius:11px; background:var(--primary);
-    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    width:38px; height:38px; border-radius:11px; overflow:hidden; flex-shrink:0;
   }
-  .brand-mark svg{ width:20px; height:20px; }
   .brand-name{ font-size:20px; font-weight:800; letter-spacing:-0.02em; }
   .brand-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:-2px; }
 
@@ -118,20 +117,29 @@
     background:var(--warn-soft); padding:2px 7px; border-radius:20px; margin-left:6px;
   }
 
-  .result-card{
-    background:var(--surface); border:1.5px solid var(--border); border-radius:20px;
-    padding:20px 18px; margin-bottom:12px; cursor:pointer;
-    transition:border-color .12s ease;
+  .result-group{
+    background:transparent; margin-bottom:12px;
   }
-  .result-card:first-child{ border-color:var(--primary); border-width:2px; }
-  .result-card:active{ border-color:var(--primary); }
+  .result-group-head{ padding:2px 2px 12px; }
+  .result-for-big{
+    font-family:'Plus Jakarta Sans', sans-serif; font-size:18px; font-weight:700;
+    letter-spacing:-0.01em; line-height:1.3; color:var(--ink);
+  }
+  .option-card{
+    background:var(--surface); border:1.5px solid var(--border); border-radius:18px;
+    padding:16px 16px; margin-bottom:10px;
+  }
+  .option-card:first-of-type{ border-color:var(--primary); border-width:2px; }
   .result-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
   .result-mode{
-    font-family:'Plus Jakarta Sans', sans-serif; font-size:21px; font-weight:800;
-    letter-spacing:-0.01em; line-height:1.2; color:var(--primary);
+    font-family:'Plus Jakarta Sans', sans-serif; font-size:19px; font-weight:800;
+    letter-spacing:-0.01em; line-height:1.25; color:var(--primary);
   }
-  .result-for{ font-size:13px; color:var(--ink-soft); margin-top:7px; font-weight:500; }
-  .result-card .item-note{ font-size:12px; margin-top:8px; }
+  .option-card .item-note{ font-size:12px; margin-top:7px; }
+  .edit-link{
+    display:block; width:100%; background:none; border:none; color:var(--ink-soft);
+    font-size:12.5px; font-weight:600; padding:8px 2px; cursor:pointer; text-align:center;
+  }
 
   .fab{
     position:fixed; right:18px; bottom:calc(22px + env(safe-area-inset-bottom,0px));
@@ -165,6 +173,19 @@
   .field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--primary); }
   .field textarea{ resize:vertical; min-height:56px; }
   .sheet-actions{ display:flex; gap:10px; margin-top:18px; }
+
+  .option-row{
+    background:var(--bg); border:1px solid var(--border); border-radius:13px;
+    padding:12px; margin-bottom:10px; position:relative;
+  }
+  .option-row .field{ margin-bottom:9px; }
+  .option-row .field:last-child{ margin-bottom:0; }
+  .option-row-top{ display:flex; gap:8px; }
+  .option-row-top .field{ flex:1; }
+  .option-remove{
+    position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:50%;
+    background:var(--warn-soft); color:var(--warn); border:none; font-size:14px; cursor:pointer;
+  }
   .btn{
     flex:1; padding:13px; border-radius:12px; border:none; font-size:14.5px; font-weight:700;
     font-family:'Inter'; cursor:pointer;
@@ -256,6 +277,34 @@
     position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.6); color:#fff;
     font-size:10.5px; font-weight:700; padding:3px 7px; border-radius:20px;
   }
+
+  /* Card detail (Save Sage style) */
+  .detail-sheet{ padding-top:14px; }
+  #detailImgWrap img{
+    width:100%; aspect-ratio:1.586/1; object-fit:cover; border-radius:14px; margin-bottom:16px;
+    background:linear-gradient(135deg,var(--primary),#4B49C4);
+  }
+  .detail-header{ margin-bottom:14px; }
+  .detail-name{ font-family:'Plus Jakarta Sans'; font-size:21px; font-weight:800; letter-spacing:-0.01em; }
+  .detail-meta{ font-size:13px; color:var(--ink-soft); margin-top:4px; }
+  .detail-fee-box{
+    background:var(--bg); border:1px solid var(--border); border-radius:13px; padding:12px 14px;
+    margin-bottom:18px; font-size:13px;
+  }
+  .detail-fee-box b{ font-family:'JetBrains Mono'; color:var(--ink); }
+  .detail-section{ margin-bottom:18px; }
+  .detail-section-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-bottom:9px; }
+  .detail-benefit{ font-size:13.5px; line-height:1.5; color:var(--ink); }
+  .reward-row{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+    padding:10px 0; border-bottom:1px solid var(--border);
+  }
+  .reward-row:last-child{ border-bottom:none; }
+  .reward-row-name{ font-size:13.5px; font-weight:600; }
+  .reward-row-note{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .reward-row-rate{ font-family:'JetBrains Mono'; font-size:13px; font-weight:700; color:var(--accent); flex-shrink:0; white-space:nowrap; }
+  .detail-empty{ font-size:12.5px; color:var(--ink-soft); font-style:italic; }
+
   .lightbox-nav{
     position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px;
     border-radius:50%; background:rgba(255,255,255,0.15); color:#fff; border:none;
@@ -275,12 +324,7 @@
 <header>
   <div class="brand">
     <div class="brand-mark">
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="5" width="20" height="14" rx="2.5" fill="#FAFAF7"/>
-        <rect x="2" y="9" width="20" height="3" fill="#1B1A4D"/>
-        <circle cx="18" cy="16.5" r="3.2" fill="#12B76A"/>
-        <path d="M16.4 16.5l1.1 1.1 2-2.1" stroke="white" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+      <img src="icons/icon-192.png" alt="CardWise" style="width:100%;height:100%;object-fit:cover;border-radius:11px;">
     </div>
     <div>
       <div class="brand-name">CardWise</div>
@@ -314,10 +358,10 @@
 <div class="sheet-backdrop" id="sheetBackdrop">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <h2 id="sheetTitle">Add entry</h2>
+    <h2 id="sheetTitle">Add use case</h2>
     <div class="field">
-      <label>Kis cheez ke liye (name)</label>
-      <input type="text" id="fName" placeholder="e.g. IKEA shopping">
+      <label>Use case (naam)</label>
+      <input type="text" id="fName" placeholder="e.g. Movie tickets">
     </div>
     <div class="field">
       <label>Section</label>
@@ -325,17 +369,14 @@
       <datalist id="sectionList"></datalist>
     </div>
     <div class="field">
-      <label>Recommended card / mode</label>
-      <input type="text" id="fMode" placeholder="e.g. Amazon Pay ICICI">
+      <label>Related keywords (space se alag, optional)</label>
+      <input type="text" id="fTags" placeholder="e.g. bookmyshow district pvr">
     </div>
-    <div class="field">
-      <label>Rate / benefit tag (chhota)</label>
-      <input type="text" id="fRate" placeholder="e.g. 5%">
-    </div>
-    <div class="field">
-      <label>Note (optional)</label>
-      <textarea id="fNote" placeholder="Cap, condition, kuch bhi extra detail"></textarea>
-    </div>
+
+    <label style="display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;">Options — jitne cards/deals is use case pe lagu hain</label>
+    <div id="optionsList"></div>
+    <button class="btn btn-ghost" id="addOptionBtn" type="button" style="width:100%; margin-bottom:18px;">+ Ek aur option add karo</button>
+
     <div class="sheet-actions">
       <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
       <button class="btn btn-primary" id="saveBtn">Save</button>
@@ -354,6 +395,8 @@
     <label>Card ki photos (front, back, jitni chahiye)</label>
     <div class="photo-grid" id="photoGrid"></div>
     <input type="file" id="cImgInput" accept="image/*" multiple style="display:none;">
+    <button class="btn btn-ghost" id="autoFillBtn" type="button" style="width:100%; margin-bottom:6px; display:none;">✨ Photo se details bharo (try karo)</button>
+    <div id="ocrStatus" style="font-size:11.5px; color:var(--ink-soft); text-align:center; margin-bottom:14px; display:none;"></div>
 
     <div class="field">
       <label>Card ka naam</label>
@@ -397,6 +440,30 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="sheet-backdrop" id="detailBackdrop">
+  <div class="sheet detail-sheet">
+    <div class="sheet-handle"></div>
+    <div id="detailImgWrap"></div>
+    <div class="detail-header">
+      <div class="detail-name" id="dName"></div>
+      <div class="detail-meta" id="dMeta"></div>
+    </div>
+    <div class="detail-fee-box" id="dFeeBox"></div>
+    <div class="detail-section" id="dBenefitSection">
+      <div class="detail-section-title">Notable feature</div>
+      <div class="detail-benefit" id="dBenefit"></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Where this card is best used</div>
+      <div id="dRewardRows"></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="detailCloseBtn">Close</button>
+      <button class="btn btn-primary" id="detailEditBtn">Edit card</button>
+    </div>
+  </div>
+</div>
+
 <div class="lightbox" id="lightbox">
   <button class="lightbox-close" id="lightboxClose">&times;</button>
   <button class="lightbox-nav prev" id="lightboxPrev">&#8249;</button>
@@ -410,128 +477,240 @@ const STORAGE_KEY = 'cardwise-data-v1';
 
 const DEFAULT_DATA = [
 ["Food & Quick Commerce",[
-  ["Swiggy (Food / Instamart / Dineout)","Swiggy HDFC Card","10%","Cap ₹1,500/cycle. Min ₹249 for 10% on app spends."],
-  ["Zepto","Swiggy HDFC Card","1%","Not an accelerated category — better switch this spend to Swiggy Instamart for 10%."],
-  ["Blinkit","Swiggy HDFC Card","1-5%","Check current MCC — some listings give 5%, others base 1%."],
-  ["Zomato","Amazon Pay ICICI","2%","Via Amazon Pay Login & Pay route."],
-  ["BigBasket / grocery","Amazon Pay ICICI","1%","Altura+ POS 1.5% is close alternative."],
-  ["Offline restaurants / cafes","IDFC First Millennia","~1.25%","10X dining category, no minimum spend needed now."],
-  ["District (dining / events / movies)","Altura+","25% off","Up to ₹150 on District movie bookings, monthly cap."],
+  ["Swiggy (Food / Instamart / Dineout)","swiggy instamart dineout food delivery",[
+    ["Swiggy HDFC Card","10%","Cap ₹1,500/cycle. Min ₹249 for 10% on app spends."]]],
+  ["Zepto","zepto quick commerce grocery",[
+    ["Swiggy HDFC Card","1%","Not accelerated — switch this spend to Swiggy Instamart for 10% instead."]]],
+  ["Blinkit","blinkit quick commerce grocery",[
+    ["Swiggy HDFC Card","1-5%","Check current MCC — some listings give 5%, others base 1%."]]],
+  ["Zomato","zomato food delivery",[
+    ["Amazon Pay ICICI","2%","Via Amazon Pay Login & Pay route."],
+    ["Altura+","1.5%","POS-style fallback if Amazon Pay route not used."]]],
+  ["BigBasket / grocery","bigbasket grocery supermarket",[
+    ["Amazon Pay ICICI","1%","Base rate."],
+    ["Altura+","1.5%","POS cashback, close alternative."]]],
+  ["Offline restaurants / cafes","restaurant cafe dining offline",[
+    ["IDFC First Millennia","~1.25%","10X dining category, no minimum spend needed now."]]],
+  ["Movies (BookMyShow / District)","movie movies bookmyshow bms cinema pvr inox ticket",[
+    ["Swiggy HDFC Card","5%","Flat cashback on BookMyShow, no promo code, ₹1,500/cycle shared cap."],
+    ["Altura+","25% off (up to ₹150)","Book via District app, promo code, min 2 tickets ~₹500, once/month."],
+    ["IDFC First Millennia","25% off (up to ₹100)","Via BookMyShow, once a month — check current spend condition."]]],
+  ["District (dining / events)","district dining events zomato",[
+    ["Altura+","up to ₹500 off","Dining category, min ₹6,000, Fri–Sun only, once/month."]]],
 ]],
 ["Travel — Domestic",[
-  ["Domestic flights / hotels","Scapia (in-app booking)","4%","Book via Scapia app itself to get the accelerated rate."],
-  ["Bus / train (IRCTC)","Scapia app / IDFC Millennia","1-4%","Scapia app if listed, else IDFC base 1X."],
-  ["Cabs (Uber / Ola)","Swiggy HDFC Card","5%","Local Cabs MCC category."],
-  ["Domestic airport lounge","Scapia","Free","Unlocks at ₹20,000/month combined Visa+RuPay spend."],
-  ["Fuel / petrol (IOCL)","HDFC Indian Oil","5%","Capped Fuel Points, resets monthly."],
-  ["Car rental","Scapia app","Varies","Check in-app listing first."],
+  ["Domestic flights / hotels","flight hotel booking domestic travel",[
+    ["Scapia (in-app booking)","4%","Book via Scapia app itself to get the accelerated rate."]]],
+  ["Bus / train (IRCTC)","bus train irctc railway",[
+    ["Scapia app","1-4%","If listed in-app for the route."],
+    ["IDFC First Millennia","~1%","Base 1X, fair-usage capped."]]],
+  ["Cabs (Uber / Ola)","uber ola cab taxi",[
+    ["Swiggy HDFC Card","5%","Local Cabs MCC category."]]],
+  ["Domestic airport lounge","lounge airport domestic",[
+    ["Scapia","Free","Unlocks at ₹20,000/month combined Visa+RuPay spend."]]],
+  ["Fuel / petrol (IOCL)","fuel petrol diesel iocl indian oil pump",[
+    ["HDFC Indian Oil","5%","Capped Fuel Points, resets monthly."]]],
+  ["Car rental","car rental self drive zoomcar",[
+    ["Scapia app","Varies","Check in-app listing first."]]],
 ]],
 ["Travel Booking Platforms",[
-  ["MakeMyTrip (MMT)","Amazon Pay ICICI / Scapia app","2-5%","Check live MMT promo for card; else book via Scapia app for 4%."],
-  ["Goibibo","Compare price first","-","No standout card offer currently — pick cheapest fare, pay via Scapia for forex-free."],
-  ["ixigo","Scapia RuPay (UPI promo)","up to 10%","RuPay-UPI promo codes rotate — check at checkout."],
-  ["Cleartrip","Swiggy HDFC Card","5%","Separate ₹1,500/cycle cap from the Swiggy category."],
-  ["Yatra","Check live offer","-","RuPay-linked promos have appeared periodically."],
-  ["RedBus / AbhiBus","Base rate","-","No accelerated card currently — use whichever card is default."],
-  ["EaseMyTrip","Check live offer","-","RuPay-UPI promos have appeared periodically."],
-  ["Scapia app (in-house booking)","Scapia","4%","The most reliable way to actually get the accelerated rate."],
+  ["MakeMyTrip (MMT)","makemytrip mmt flight hotel",[
+    ["Scapia app","4%","Book same fare via Scapia app if available."],
+    ["Amazon Pay ICICI","2-5%","Check live MMT promo — rotates periodically."]]],
+  ["Goibibo","goibibo flight hotel",[
+    ["Compare price first","-","No standout card offer currently — pick cheapest fare, pay via Scapia for forex-free."]]],
+  ["ixigo","ixigo flight train",[
+    ["Scapia RuPay (UPI promo)","up to 10%","RuPay-UPI promo codes rotate — check at checkout."]]],
+  ["Cleartrip","cleartrip flight hotel",[
+    ["Swiggy HDFC Card","5%","Separate ₹1,500/cycle cap from the Swiggy category."]]],
+  ["Yatra","yatra flight hotel",[
+    ["Check live offer","-","RuPay-linked promos have appeared periodically."]]],
+  ["RedBus / AbhiBus","redbus abhibus bus booking",[
+    ["Base rate","-","No accelerated card currently — use whichever card is default."]]],
+  ["EaseMyTrip","easemytrip flight",[
+    ["Check live offer","-","RuPay-UPI promos have appeared periodically."]]],
+  ["Scapia app (in-house booking)","scapia app booking",[
+    ["Scapia","4%","The most reliable way to actually get the accelerated rate."]]],
 ]],
 ["International",[
-  ["International flights / hotels","Scapia","4% + 0% forex","Book via Scapia app for both benefits together."],
-  ["Forex / currency spends","Scapia","0% markup","Zero forex markup — best of all 6 cards for this."],
-  ["International lounge access","—","Gap","None of the current cards cover this — worth flagging if int'l travel increases."],
-  ["Visa application fees","Scapia","0% forex","Avoids the 3.5% markup other cards would add."],
-  ["Travel insurance (int'l)","Amazon Pay ICICI","1%","Weak across the board — no card specializes here."],
-  ["Overseas SIM / roaming","Scapia","0% forex",""],
-  ["Duty-free shopping","Scapia","0% forex",""],
-  ["International conference / CME fees","Scapia","0% forex","If paid by card in foreign currency."],
-  ["Foreign course / university fees","Scapia","0% forex",""],
-  ["Overseas online shopping (Amazon.com etc)","Scapia","0% forex","Saves the markup on non-INR billing."],
-  ["International SaaS / journal subscriptions","Scapia","0% forex","If billed in USD."],
+  ["International flights / hotels","international flight hotel abroad",[
+    ["Scapia","4% + 0% forex","Book via Scapia app for both benefits together."]]],
+  ["Forex / currency spends","forex currency exchange abroad international",[
+    ["Scapia","0% markup","Zero forex markup — best of all cards for this."]]],
+  ["International lounge access","international lounge airport",[
+    ["—","Gap","None of the current cards cover this — worth flagging if int'l travel increases."]]],
+  ["Visa application fees","visa application fee embassy",[
+    ["Scapia","0% forex","Avoids the 3.5% markup other cards would add."]]],
+  ["Travel insurance (int'l)","travel insurance international",[
+    ["Amazon Pay ICICI","1%","Weak across the board — no card specializes here."]]],
+  ["Overseas SIM / roaming","sim roaming data abroad",[
+    ["Scapia","0% forex",""]]],
+  ["Duty-free shopping","duty free airport shopping",[
+    ["Scapia","0% forex",""]]],
+  ["International conference / CME fees","international conference cme fee",[
+    ["Scapia","0% forex","If paid by card in foreign currency."]]],
+  ["Foreign course / university fees","foreign university course fee",[
+    ["Scapia","0% forex",""]]],
+  ["Overseas online shopping (Amazon.com etc)","overseas online shopping amazon.com ebay",[
+    ["Scapia","0% forex","Saves the markup on non-INR billing."]]],
+  ["International SaaS / journal subscriptions","international saas journal subscription usd",[
+    ["Scapia","0% forex","If billed in USD."]]],
 ]],
 ["Shopping",[
-  ["Amazon","Amazon Pay ICICI","5%","Prime members; 3% non-Prime."],
-  ["Flipkart / Myntra / Nykaa","Swiggy HDFC Card","5%","Separate online-merchant cap."],
-  ["Sneakers / fragrances / electronics","Swiggy HDFC Card","5%","If merchant is in the 5% MCC list, else Amazon Pay 1%."],
-  ["Furniture / home decor","Amazon Pay ICICI / Altura+","1-1.5%",""],
-  ["Jewelry","Altura+","1.5%","No exclusion here, unlike most other cards."],
+  ["Amazon","amazon shopping",[
+    ["Amazon Pay ICICI","5%","Prime members; 3% non-Prime."]]],
+  ["Flipkart / Myntra / Nykaa","flipkart myntra nykaa fashion apparel",[
+    ["Swiggy HDFC Card","5%","Separate online-merchant cap."]]],
+  ["Sneakers / fragrances / electronics","sneakers fragrance electronics gadget",[
+    ["Swiggy HDFC Card","5%","If merchant is in the 5% MCC list."],
+    ["Amazon Pay ICICI","1%","Fallback base rate."]]],
+  ["Furniture / home decor","furniture home decor",[
+    ["Amazon Pay ICICI","1%",""],
+    ["Altura+","1.5%","POS alternative."]]],
+  ["Jewelry","jewelry jewellery gold",[
+    ["Altura+","1.5%","No exclusion here, unlike most other cards."]]],
 ]],
 ["Entertainment",[
-  ["Movie tickets (BookMyShow)","Swiggy HDFC Card","5%","Entertainment category."],
-  ["OTT subscriptions","Swiggy HDFC Card","5%","Netflix, Hotstar included in the 5% list."],
-  ["Music streaming","Swiggy HDFC Card","5%","Else Amazon Pay 1% base."],
-  ["Gaming / app purchases","Amazon Pay ICICI","1%","Base rate, no category card exists for this."],
+  ["OTT subscriptions","ott netflix hotstar prime subscription",[
+    ["Swiggy HDFC Card","5%","Netflix, Hotstar included in the 5% list."]]],
+  ["Music streaming","music spotify streaming",[
+    ["Swiggy HDFC Card","5%",""],
+    ["Amazon Pay ICICI","1%","Fallback base rate."]]],
+  ["Gaming / app purchases","gaming app purchase games",[
+    ["Amazon Pay ICICI","1%","Base rate, no category card exists for this."]]],
 ]],
 ["Bills & Utilities",[
-  ["Electricity / water / gas","CRED (pay via Altura+ or Amazon Pay)","1.5-2%","CRED adds its own coins on top of the underlying card rate."],
-  ["Mobile / broadband / DTH","Amazon Pay ICICI","2%","Via Amazon Pay wallet route."],
+  ["Electricity / water / gas","electricity water gas bill utility",[
+    ["CRED (via Altura+ or Amazon Pay)","1.5-2%","CRED adds its own coins on top of the underlying card rate."],
+    ["Amazon Pay ICICI","2%","Direct via Amazon Pay wallet route."]]],
+  ["Mobile / broadband / DTH","mobile broadband dth recharge bill",[
+    ["Amazon Pay ICICI","2%","Via Amazon Pay wallet route."]]],
 ]],
 ["Health & Insurance",[
-  ["Health / term insurance premium","Altura+","0.25%","Weak, but the only card that covers this category at all."],
-  ["Pharmacy (1mg / PharmEasy)","Swiggy HDFC Card","5%","Pharmacies MCC category."],
-  ["Diagnostic labs","Amazon Pay ICICI","1%","Base rate."],
-  ["Gym / fitness membership","Swiggy HDFC Card","5%","If the gym partner is in the merchant list, else base rate."],
+  ["Health / term insurance premium","health term insurance premium",[
+    ["Altura+","0.25%","Weak, but the only card that covers this category at all."]]],
+  ["Pharmacy (1mg / PharmEasy)","pharmacy medicine 1mg pharmeasy",[
+    ["Swiggy HDFC Card","5%","Pharmacies MCC category."]]],
+  ["Diagnostic labs","diagnostic lab test pathology",[
+    ["Amazon Pay ICICI","1%","Base rate."]]],
+  ["Gym / fitness membership","gym fitness membership cultfit",[
+    ["Swiggy HDFC Card","5%","If the gym partner is in the merchant list."]]],
 ]],
 ["Professional / Medical Practice",[
-  ["CME / conference fees (domestic)","Base rate","1%","No card specializes here — pick whichever is fee-free at the time."],
-  ["Journal subscriptions / APC (foreign billing)","Scapia","0% forex","Better than Amazon Pay if billed in USD."],
-  ["Surgical equipment / instruments","Amazon Pay ICICI / Altura+","1-1.5%","Large uncapped spend — no exclusion needed."],
-  ["Clinic consumables","Altura+","1.5%","POS cashback, uncapped-ish."],
-  ["Software subscriptions (Claude, Canva, hosting)","Amazon Pay ICICI","1%",""],
-  ["Domain / hosting renewals","Amazon Pay ICICI","1%",""],
-  ["Medical council / association fees","Altura+","0.25%","No dedicated card benefit exists."],
-  ["Malpractice / indemnity insurance","Altura+","0.25%",""],
-  ["CA / tax filing, GST payments","Altura+","0.25%","Utility-type spend, no exclusion."],
+  ["CME / conference fees (domestic)","cme conference fee domestic",[
+    ["Base rate","1%","No card specializes here — pick whichever is fee-free at the time."]]],
+  ["Journal subscriptions / APC (foreign billing)","journal subscription apc foreign",[
+    ["Scapia","0% forex","Better than Amazon Pay if billed in USD."]]],
+  ["Surgical equipment / instruments","surgical equipment instrument",[
+    ["Amazon Pay ICICI","1%",""],
+    ["Altura+","1.5%","Large uncapped spend — no exclusion needed."]]],
+  ["Clinic consumables","clinic consumables opd",[
+    ["Altura+","1.5%","POS cashback, uncapped-ish."]]],
+  ["Software subscriptions (Claude, Canva, hosting)","software subscription saas hosting",[
+    ["Amazon Pay ICICI","1%",""]]],
+  ["Domain / hosting renewals","domain hosting renewal",[
+    ["Amazon Pay ICICI","1%",""]]],
+  ["Medical council / association fees","medical council association fee",[
+    ["Altura+","0.25%","No dedicated card benefit exists."]]],
+  ["Malpractice / indemnity insurance","malpractice indemnity insurance",[
+    ["Altura+","0.25%",""]]],
+  ["CA / tax filing, GST payments","ca tax filing gst payment",[
+    ["Altura+","0.25%","Utility-type spend, no exclusion."]]],
 ]],
 ["Education",[
-  ["Online courses","Amazon Pay ICICI","1%",""],
-  ["Books / e-books","Amazon Pay ICICI","5%","If bought via Amazon."],
+  ["Online courses","online course education",[
+    ["Amazon Pay ICICI","1%",""]]],
+  ["Books / e-books","books ebooks",[
+    ["Amazon Pay ICICI","5%","If bought via Amazon."]]],
 ]],
 ["Vehicle",[
-  ["Vehicle EMI","Direct bank EMI","-","Usually no card benefit — avoid routing through card."],
-  ["Vehicle insurance","Altura+","0.25%",""],
-  ["FASTag / toll","IDFC Millennia","~1%","Fair-usage capped; or link FASTag to Scapia RuPay via UPI."],
-  ["Vehicle servicing / repairs","Altura+","1.5%","Else Swiggy card 5% if listed."],
-  ["Parking apps","UPI (PhonePe/Paytm)","-","Small amounts — reward is negligible either way."],
+  ["Vehicle EMI","vehicle car bike emi loan",[
+    ["Direct bank EMI","-","Usually no card benefit — avoid routing through card."]]],
+  ["Vehicle insurance","vehicle car insurance",[
+    ["Altura+","0.25%",""]]],
+  ["FASTag / toll","fastag toll highway",[
+    ["IDFC First Millennia","~1%","Fair-usage capped."],
+    ["Scapia RuPay","Varies","Link FASTag to RuPay via UPI as alternative."]]],
+  ["Vehicle servicing / repairs","vehicle servicing repair",[
+    ["Altura+","1.5%",""],
+    ["Swiggy HDFC Card","5%","If listed merchant category."]]],
+  ["Parking apps","parking app park+",[
+    ["UPI (PhonePe/Paytm)","-","Small amounts — reward is negligible either way."]]],
 ]],
 ["Home & Family",[
-  ["Rent","CRED (via Altura+ or Amazon Pay)","1-1.5%","Platform fee applies — check the math is actually worth it."],
-  ["Home / clinic maintenance","Altura+","1.5%",""],
-  ["Domestic help (Urban Company)","Amazon Pay ICICI","2%","Listed partner merchant."],
-  ["Gifts","Swiggy HDFC Card","5%","If bought via Myntra/Amazon-type store."],
-  ["Office supplies","Amazon Pay ICICI","1%",""],
+  ["Rent","rent house flat",[
+    ["CRED (via Altura+ or Amazon Pay)","1-1.5%","Platform fee applies — check the math is actually worth it."]]],
+  ["Home / clinic maintenance","home clinic maintenance repair",[
+    ["Altura+","1.5%",""]]],
+  ["Domestic help (Urban Company)","urban company domestic help",[
+    ["Amazon Pay ICICI","2%","Listed partner merchant."]]],
+  ["Gifts","gifts",[
+    ["Swiggy HDFC Card","5%","If bought via Myntra/Amazon-type store."]]],
+  ["Office supplies","office supplies stationery",[
+    ["Amazon Pay ICICI","1%",""]]],
 ]],
 ["Personal Care",[
-  ["Salon / spa","Altura+","1.5%","POS cashback."],
-  ["Laundry / dry cleaning","Altura+","1.5%",""],
+  ["Salon / spa","salon spa grooming",[
+    ["Altura+","1.5%","POS cashback."]]],
+  ["Laundry / dry cleaning","laundry dry cleaning",[
+    ["Altura+","1.5%",""]]],
 ]],
 ["Financial / Recurring",[
-  ["SIP / mutual fund investments","—","-","Most platforms don't allow card payment — skip."],
-  ["Other card's bill payment","CRED","Varies","Extra coins on top of underlying card."],
-  ["Loan EMI conversion","Card's own EMI facility","-","Use IDFC/Swiggy in-built EMI tools, not a fresh spend."],
-  ["Tax payments","Altura+","0.25%","Utility-type spend."],
-  ["Locker rent / demat charges","Altura+","0.25%",""],
+  ["SIP / mutual fund investments","sip mutual fund investment",[
+    ["—","-","Most platforms don't allow card payment — skip."]]],
+  ["Other card's bill payment","credit card bill payment",[
+    ["CRED","Varies","Extra coins on top of underlying card."]]],
+  ["EMI conversion (big purchase)","emi conversion no cost",[
+    ["Amazon Pay ICICI","0% extra","No Cost EMI on eligible Amazon products."],
+    ["IDFC First Millennia","5%","Only on first EMI transaction, one-time, within 90 days of card issue."],
+    ["Altura+","-","Xpress EMI — convert any ₹2,000+ transaction later via customer care."]]],
+  ["Tax payments","tax payment income tax",[
+    ["Altura+","0.25%","Utility-type spend."]]],
+  ["Locker rent / demat charges","locker rent demat charges",[
+    ["Altura+","0.25%",""]]],
 ]],
 ["Misc",[
-  ["Courier / parcel (Porter, Dunzo)","Amazon Pay ICICI","1%","Base rate — no card specializes here."],
-  ["Event tickets (concerts, sports)","Swiggy HDFC Card","5%","Entertainment category, or District via Altura+."],
-  ["Charity / donations","Amazon Pay ICICI","1%",""],
-  ["Wedding / social event shopping","Swiggy HDFC Card","5%","Myntra/Amazon-type categories."],
-  ["Content creation gear / subscriptions","Amazon Pay ICICI","1%",""],
-  ["Group trip expenses","Scapia","4%","Travel-related, book via app where possible."],
+  ["Courier / parcel (Porter, Dunzo)","courier parcel porter dunzo",[
+    ["Amazon Pay ICICI","1%","Base rate — no card specializes here."]]],
+  ["Event tickets (concerts, sports)","event tickets concert sports",[
+    ["Swiggy HDFC Card","5%","Entertainment category."],
+    ["Altura+","25% off","Via District, if the event is listed there."]]],
+  ["Charity / donations","charity donation",[
+    ["Amazon Pay ICICI","1%",""]]],
+  ["Wedding / social event shopping","wedding shopping social event",[
+    ["Swiggy HDFC Card","5%","Myntra/Amazon-type categories."]]],
+  ["Content creation gear / subscriptions","content creation gear subscription",[
+    ["Amazon Pay ICICI","1%",""]]],
+  ["Group trip expenses","group trip travel expenses",[
+    ["Scapia","4%","Travel-related, book via app where possible."]]],
 ]]
 ];
 
 function loadData(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw){
-    try{ return JSON.parse(raw); }catch(e){}
+    try{
+      const parsed = JSON.parse(raw);
+      // migrate old single mode/rate/note schema to options array
+      parsed.forEach(item=>{
+        if(!item.options){
+          item.options = [{ mode:item.mode, rate:item.rate, note:item.note }];
+          delete item.mode; delete item.rate; delete item.note;
+        }
+        if(item.tags === undefined) item.tags = '';
+      });
+      return parsed;
+    }catch(e){}
   }
   const seeded = [];
   let id = 1;
   DEFAULT_DATA.forEach(([section, items])=>{
-    items.forEach(([name, mode, rate, note])=>{
-      seeded.push({ id: id++, section, name, mode, rate, note, custom:false });
+    items.forEach(([name, tags, options])=>{
+      seeded.push({
+        id: id++, section, name, tags,
+        options: options.map(([mode,rate,note])=>({mode,rate,note})),
+        custom:false
+      });
     });
   });
   saveData(seeded);
@@ -552,12 +731,14 @@ const sheetBackdrop = document.getElementById('sheetBackdrop');
 const sheetTitle = document.getElementById('sheetTitle');
 const fName = document.getElementById('fName');
 const fSection = document.getElementById('fSection');
-const fMode = document.getElementById('fMode');
-const fRate = document.getElementById('fRate');
-const fNote = document.getElementById('fNote');
+const fTags = document.getElementById('fTags');
+const optionsList = document.getElementById('optionsList');
+const addOptionBtn = document.getElementById('addOptionBtn');
 const deleteRow = document.getElementById('deleteRow');
 const sectionList = document.getElementById('sectionList');
 const toast = document.getElementById('toast');
+
+let pendingCatOptions = [];
 
 function showToast(msg){
   toast.textContent = msg;
@@ -569,16 +750,20 @@ function uniqueSections(){
   return [...new Set(data.map(d=>d.section))];
 }
 
+function itemSearchText(item){
+  return (item.name+' '+item.section+' '+(item.tags||'')+' '+
+    item.options.map(o=>o.mode+' '+(o.note||'')).join(' ')).toLowerCase();
+}
+
 function scoreItem(item, q){
   const name = item.name.toLowerCase();
-  const mode = (item.mode||'').toLowerCase();
+  const tags = (item.tags||'').toLowerCase();
   if(name.startsWith(q)) return 0;
   if(name.includes(q)) return 1;
-  if(mode.startsWith(q)) return 2;
-  if(mode.includes(q)) return 3;
+  if((' '+tags+' ').includes(' '+q)) return 2;
+  if(tags.includes(q)) return 3;
   if((item.section||'').toLowerCase().includes(q)) return 4;
-  if((item.note||'').toLowerCase().includes(q)) return 5;
-  return 6;
+  return 5;
 }
 
 function render(){
@@ -589,12 +774,12 @@ function render(){
     resultsEl.innerHTML = `<div class="empty-state">
       <div class="glyph">⌨️</div>
       <p><strong>Type karo apna use case</strong></p>
-      <p>e.g. "Swiggy", "MMT", "insurance" — best card turant dikh jayega.</p>
+      <p>e.g. "movie", "zomato", "insurance" — jo bhi options apply hote hain, sab saath dikh jayenge.</p>
     </div>`;
     return;
   }
 
-  let filtered = data.filter(d => (d.name+' '+d.mode+' '+d.section+' '+(d.note||'')).toLowerCase().includes(q));
+  let filtered = data.filter(d => itemSearchText(d).includes(q));
 
   if(filtered.length === 0){
     resultsEl.innerHTML = `<div class="empty-state">
@@ -606,22 +791,25 @@ function render(){
   }
 
   filtered.sort((a,b)=> scoreItem(a,q) - scoreItem(b,q));
-  const top = filtered.slice(0, 2);
+  const best = filtered[0];
 
-  let html = '';
-  top.forEach(item=>{
-    html += `<div class="result-card" data-id="${item.id}">
+  let html = `<div class="result-group" data-id="${best.id}">
+    <div class="result-group-head">
+      <div class="result-for-big">${escapeHtml(best.name)}${best.custom ? '<span class="custom-tag">Custom</span>' : ''}</div>
+    </div>`;
+  best.options.forEach(opt=>{
+    html += `<div class="option-card">
       <div class="result-top">
-        <div class="result-mode">${escapeHtml(item.mode)}</div>
-        ${item.rate ? `<div class="item-badge mono">${escapeHtml(item.rate)}</div>` : ''}
+        <div class="result-mode">${escapeHtml(opt.mode)}</div>
+        ${opt.rate ? `<div class="item-badge mono">${escapeHtml(opt.rate)}</div>` : ''}
       </div>
-      <div class="result-for">${escapeHtml(item.name)}${item.custom ? '<span class="custom-tag">Custom</span>' : ''}</div>
-      ${item.note ? `<div class="item-note">${escapeHtml(item.note)}</div>` : ''}
+      ${opt.note ? `<div class="item-note">${escapeHtml(opt.note)}</div>` : ''}
     </div>`;
   });
+  html += `<button class="edit-link" data-id="${best.id}">Edit yeh entry</button></div>`;
   resultsEl.innerHTML = html;
 
-  document.querySelectorAll('.result-card').forEach(el=>{
+  document.querySelectorAll('.edit-link').forEach(el=>{
     el.addEventListener('click', ()=> openEdit(parseInt(el.dataset.id)));
   });
 }
@@ -634,10 +822,42 @@ function refreshSectionList(){
   sectionList.innerHTML = uniqueSections().map(s=>`<option value="${escapeHtml(s)}"></option>`).join('');
 }
 
+function renderOptionsForm(){
+  optionsList.innerHTML = pendingCatOptions.map((o, i)=> `
+    <div class="option-row" data-i="${i}">
+      <button class="option-remove" data-remove-opt="${i}" type="button">&times;</button>
+      <div class="option-row-top">
+        <div class="field"><label>Card / mode</label><input type="text" data-field="mode" data-i="${i}" value="${escapeHtml(o.mode)}" placeholder="e.g. Amazon Pay ICICI"></div>
+        <div class="field" style="max-width:90px;"><label>Rate</label><input type="text" data-field="rate" data-i="${i}" value="${escapeHtml(o.rate||'')}" placeholder="5%"></div>
+      </div>
+      <div class="field"><label>Note (optional)</label><input type="text" data-field="note" data-i="${i}" value="${escapeHtml(o.note||'')}" placeholder="Cap, condition, etc"></div>
+    </div>`).join('');
+
+  optionsList.querySelectorAll('[data-field]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const i = parseInt(inp.dataset.i);
+      pendingCatOptions[i][inp.dataset.field] = inp.value;
+    });
+  });
+  optionsList.querySelectorAll('[data-remove-opt]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      pendingCatOptions.splice(parseInt(btn.dataset.removeOpt), 1);
+      renderOptionsForm();
+    });
+  });
+}
+
+addOptionBtn.addEventListener('click', ()=>{
+  pendingCatOptions.push({ mode:'', rate:'', note:'' });
+  renderOptionsForm();
+});
+
 function openAdd(){
   editingId = null;
-  sheetTitle.textContent = 'Add entry';
-  fName.value=''; fSection.value=''; fMode.value=''; fRate.value=''; fNote.value='';
+  sheetTitle.textContent = 'Add use case';
+  fName.value=''; fSection.value=''; fTags.value='';
+  pendingCatOptions = [{ mode:'', rate:'', note:'' }];
+  renderOptionsForm();
   deleteRow.style.display = 'none';
   refreshSectionList();
   sheetBackdrop.classList.add('open');
@@ -648,12 +868,12 @@ function openEdit(id){
   const item = data.find(d=>d.id===id);
   if(!item) return;
   editingId = id;
-  sheetTitle.textContent = 'Edit entry';
+  sheetTitle.textContent = 'Edit use case';
   fName.value = item.name;
   fSection.value = item.section;
-  fMode.value = item.mode;
-  fRate.value = item.rate || '';
-  fNote.value = item.note || '';
+  fTags.value = item.tags || '';
+  pendingCatOptions = item.options.map(o=>({...o}));
+  renderOptionsForm();
   deleteRow.style.display = 'flex';
   refreshSectionList();
   sheetBackdrop.classList.add('open');
@@ -666,22 +886,23 @@ function closeSheet(){
 function save(){
   const name = fName.value.trim();
   const section = fSection.value.trim() || 'Mera Apna';
-  const mode = fMode.value.trim();
-  const rate = fRate.value.trim();
-  const note = fNote.value.trim();
+  const tags = fTags.value.trim();
+  const options = pendingCatOptions
+    .map(o=>({ mode:(o.mode||'').trim(), rate:(o.rate||'').trim(), note:(o.note||'').trim() }))
+    .filter(o=>o.mode);
 
-  if(!name || !mode){
-    showToast('Naam aur card dono chahiye');
+  if(!name || options.length===0){
+    showToast('Naam aur kam se kam ek card daalo');
     return;
   }
 
   if(editingId){
     const item = data.find(d=>d.id===editingId);
-    item.name = name; item.section = section; item.mode = mode; item.rate = rate; item.note = note;
+    item.name = name; item.section = section; item.tags = tags; item.options = options;
     showToast('Update ho gaya');
   } else {
     const newId = data.length ? Math.max(...data.map(d=>d.id))+1 : 1;
-    data.push({ id:newId, section, name, mode, rate, note, custom:true });
+    data.push({ id:newId, section, name, tags, options, custom:true });
     showToast('Add ho gaya');
   }
   saveData(data);
@@ -724,6 +945,8 @@ const cardSheetBackdrop = document.getElementById('cardSheetBackdrop');
 const cardSheetTitle = document.getElementById('cardSheetTitle');
 const cImgInput = document.getElementById('cImgInput');
 const photoGrid = document.getElementById('photoGrid');
+const autoFillBtn = document.getElementById('autoFillBtn');
+const ocrStatus = document.getElementById('ocrStatus');
 const cName = document.getElementById('cName');
 const cBank = document.getElementById('cBank');
 const cNetwork = document.getElementById('cNetwork');
@@ -783,7 +1006,7 @@ function renderCards(){
   cardsGrid.innerHTML = html;
 
   document.querySelectorAll('.card-tile').forEach(el=>{
-    el.addEventListener('click', ()=> openCardEdit(parseInt(el.dataset.id)));
+    el.addEventListener('click', ()=> openCardDetail(parseInt(el.dataset.id)));
   });
   document.querySelectorAll('.tile-view-btn').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
@@ -851,13 +1074,88 @@ function renderPhotoGrid(){
     });
   });
   document.getElementById('photoAddTile').addEventListener('click', ()=> cImgInput.click());
+  autoFillBtn.style.display = pendingImages.length ? 'block' : 'none';
 }
 
 function resetCardForm(){
   cName.value=''; cBank.value=''; cNetwork.value='Visa'; cLast4.value=''; cFee.value=''; cBenefit.value='';
   pendingImages = [];
+  ocrStatus.style.display = 'none';
+  ocrStatus.textContent = '';
   renderPhotoGrid();
 }
+
+const detailBackdrop = document.getElementById('detailBackdrop');
+const detailImgWrap = document.getElementById('detailImgWrap');
+const dName = document.getElementById('dName');
+const dMeta = document.getElementById('dMeta');
+const dFeeBox = document.getElementById('dFeeBox');
+const dBenefitSection = document.getElementById('dBenefitSection');
+const dBenefit = document.getElementById('dBenefit');
+const dRewardRows = document.getElementById('dRewardRows');
+let detailCardId = null;
+
+function findRewardRowsForCard(card){
+  // Cross-match this card's name against every option across all categories in the
+  // "Best Card" dataset, so the detail page builds itself from data already entered there.
+  const nameLower = card.name.toLowerCase();
+  const nameWords = nameLower.split(/\s+/).filter(w => w.length > 2 && !['card','the','and','via'].includes(w));
+  const rows = [];
+  data.forEach(cat=>{
+    cat.options.forEach(opt=>{
+      const modeLower = opt.mode.toLowerCase();
+      const isMatch = modeLower.includes(nameLower) || nameWords.some(w => modeLower.includes(w));
+      if(isMatch){
+        rows.push({ category: cat.name, rate: opt.rate, note: opt.note });
+      }
+    });
+  });
+  return rows;
+}
+
+function openCardDetail(id){
+  const c = myCards.find(x=>x.id===id);
+  if(!c) return;
+  detailCardId = id;
+
+  const imgs = c.images || [];
+  detailImgWrap.innerHTML = imgs.length
+    ? `<img src="${imgs[0]}" id="dHeroImg" style="cursor:pointer;">`
+    : `<div style="width:100%;aspect-ratio:1.586/1;border-radius:14px;background:linear-gradient(135deg,var(--primary),#4B49C4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;padding:12px;text-align:center;">${escapeHtml(c.name)}</div>`;
+  if(imgs.length){
+    document.getElementById('dHeroImg').addEventListener('click', ()=> openLightbox(imgs, 0));
+  }
+
+  dName.textContent = c.name;
+  dMeta.textContent = [c.bank, c.network, c.last4 ? '•• '+c.last4 : ''].filter(Boolean).join(' · ');
+
+  dFeeBox.innerHTML = c.fee
+    ? `Annual fee: <b>${escapeHtml(c.fee)}</b>`
+    : `<span class="detail-empty">Fee details add nahi ki hain — Edit se add karo.</span>`;
+
+  if(c.benefit){
+    dBenefitSection.style.display = 'block';
+    dBenefit.textContent = c.benefit;
+  } else {
+    dBenefitSection.style.display = 'none';
+  }
+
+  const rows = findRewardRowsForCard(c);
+  dRewardRows.innerHTML = rows.length
+    ? rows.map(r => `<div class="reward-row">
+        <div><div class="reward-row-name">${escapeHtml(r.category)}</div>${r.note ? `<div class="reward-row-note">${escapeHtml(r.note)}</div>` : ''}</div>
+        ${r.rate ? `<div class="reward-row-rate">${escapeHtml(r.rate)}</div>` : ''}
+      </div>`).join('')
+    : `<div class="detail-empty">Best Card tab mein is naam se koi use-case match nahi hua abhi.</div>`;
+
+  detailBackdrop.classList.add('open');
+}
+document.getElementById('detailCloseBtn').addEventListener('click', ()=> detailBackdrop.classList.remove('open'));
+document.getElementById('detailEditBtn').addEventListener('click', ()=>{
+  detailBackdrop.classList.remove('open');
+  openCardEdit(detailCardId);
+});
+detailBackdrop.addEventListener('click', (e)=>{ if(e.target===detailBackdrop) detailBackdrop.classList.remove('open'); });
 
 function openCardAdd(){
   editingCardId = null;
@@ -875,6 +1173,8 @@ function openCardEdit(id){
   cName.value = c.name; cBank.value = c.bank||''; cNetwork.value = c.network||'Visa';
   cLast4.value = c.last4||''; cFee.value = c.fee||''; cBenefit.value = c.benefit||'';
   pendingImages = [...(c.images || [])];
+  ocrStatus.style.display = 'none';
+  ocrStatus.textContent = '';
   renderPhotoGrid();
   cDeleteRow.style.display = 'flex';
   cardSheetBackdrop.classList.add('open');
@@ -911,6 +1211,65 @@ cImgInput.addEventListener('change', async (e)=>{
   }
   renderPhotoGrid();
   cImgInput.value = '';
+});
+
+const KNOWN_BANKS = ['HDFC','ICICI','SBI','STATE BANK','AXIS','IDFC','SCAPIA','FEDERAL','AU SMALL FINANCE','AU BANK','KOTAK','YES BANK','RBL','INDUSIND','CITI','HSBC','STANDARD CHARTERED','AMERICAN EXPRESS'];
+const NETWORK_MAP = [['VISA','Visa'],['MASTERCARD','Mastercard'],['RUPAY','RuPay'],['AMERICAN EXPRESS','American Express'],['AMEX','American Express']];
+
+autoFillBtn.addEventListener('click', async ()=>{
+  if(typeof Tesseract === 'undefined'){
+    showToast('OCR library load nahi hui — internet check karo');
+    return;
+  }
+  if(!pendingImages.length) return;
+
+  autoFillBtn.disabled = true;
+  autoFillBtn.textContent = 'Padh raha hoon...';
+  ocrStatus.style.display = 'block';
+  ocrStatus.textContent = 'Photo se text nikala ja raha hai, thoda time lagega...';
+
+  try{
+    const { data: { text } } = await Tesseract.recognize(pendingImages[0], 'eng');
+    const upper = text.toUpperCase();
+
+    let filled = [];
+
+    // last 4 digits — look for a 4-digit group not part of a longer run
+    const digitGroups = text.match(/\b\d{4}\b/g);
+    if(digitGroups && digitGroups.length && !cLast4.value){
+      cLast4.value = digitGroups[digitGroups.length - 1];
+      filled.push('last 4 digits');
+    }
+
+    // network
+    if(!cNetwork.value || cNetwork.value === 'Visa'){
+      const foundNetwork = NETWORK_MAP.find(([key])=> upper.includes(key));
+      if(foundNetwork){ cNetwork.value = foundNetwork[1]; filled.push('network'); }
+    }
+
+    // bank
+    const foundBank = KNOWN_BANKS.find(b=> upper.includes(b));
+    if(foundBank && !cBank.value){
+      cBank.value = foundBank.charAt(0) + foundBank.slice(1).toLowerCase();
+      filled.push('bank');
+    }
+    if(foundBank && !cName.value){
+      cName.value = cBank.value + ' Card';
+      filled.push('naam (suggestion)');
+    }
+
+    if(filled.length){
+      ocrStatus.textContent = `Try kiya: ${filled.join(', ')} — check karke sahi kar lo.`;
+      showToast('Kuch details mil gayi, verify kar lo');
+    } else {
+      ocrStatus.textContent = 'Kuch clearly padh nahi paya — khud bhar do.';
+    }
+  } catch(err){
+    ocrStatus.textContent = 'OCR fail ho gaya — manually bhar do.';
+  } finally {
+    autoFillBtn.disabled = false;
+    autoFillBtn.textContent = '✨ Photo se details bharo (try karo)';
+  }
 });
 
 function saveCard(){

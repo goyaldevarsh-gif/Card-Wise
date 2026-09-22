@@ -118,6 +118,21 @@
     background:var(--warn-soft); padding:2px 7px; border-radius:20px; margin-left:6px;
   }
 
+  .result-card{
+    background:var(--surface); border:1.5px solid var(--border); border-radius:20px;
+    padding:20px 18px; margin-bottom:12px; cursor:pointer;
+    transition:border-color .12s ease;
+  }
+  .result-card:first-child{ border-color:var(--primary); border-width:2px; }
+  .result-card:active{ border-color:var(--primary); }
+  .result-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .result-mode{
+    font-family:'Plus Jakarta Sans', sans-serif; font-size:21px; font-weight:800;
+    letter-spacing:-0.01em; line-height:1.2; color:var(--primary);
+  }
+  .result-for{ font-size:13px; color:var(--ink-soft); margin-top:7px; font-weight:500; }
+  .result-card .item-note{ font-size:12px; margin-top:8px; }
+
   .fab{
     position:fixed; right:18px; bottom:calc(22px + env(safe-area-inset-bottom,0px));
     width:56px; height:56px; border-radius:50%; background:var(--primary); color:var(--primary-ink);
@@ -167,6 +182,24 @@
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
+  .lightbox{
+    position:fixed; inset:0; background:rgba(8,8,16,0.92); z-index:60;
+    display:none; align-items:center; justify-content:center; padding:24px;
+  }
+  .lightbox.open{ display:flex; }
+  .lightbox img{ max-width:100%; max-height:80vh; border-radius:14px; }
+  .lightbox-close{
+    position:absolute; top:calc(18px + env(safe-area-inset-top,0px)); right:18px;
+    width:38px; height:38px; border-radius:50%; border:none; background:rgba(255,255,255,0.15);
+    color:#fff; font-size:22px; cursor:pointer;
+  }
+  .tile-img-wrap{ position:relative; }
+  .tile-view-btn{
+    position:absolute; top:8px; right:8px; width:28px; height:28px; border-radius:50%;
+    background:rgba(0,0,0,0.55); color:#fff; border:none; font-size:13px; display:flex;
+    align-items:center; justify-content:center; cursor:pointer;
+  }
+
   .top-note{
     background:var(--accent-soft); color:var(--accent); border-radius:12px; padding:10px 13px;
     font-size:12.5px; margin-bottom:16px; line-height:1.4; font-weight:500;
@@ -200,16 +233,41 @@
   .add-card-tile .plus{ font-size:26px; color:var(--primary); }
   .add-card-tile span{ font-size:12px; font-weight:600; }
 
-  .img-upload{
-    display:flex; align-items:center; gap:12px; padding:10px; border:1.5px dashed var(--border);
-    border-radius:12px; cursor:pointer; margin-bottom:13px;
+  .photo-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:16px;
   }
-  .img-upload-preview{
-    width:64px; height:40px; border-radius:7px; object-fit:cover; background:var(--bg);
-    flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-size:10px;
+  .photo-thumb{
+    position:relative; aspect-ratio:1.586/1; border-radius:10px; overflow:hidden;
+    border:1px solid var(--border);
   }
-  .img-upload-text{ font-size:12.5px; color:var(--ink-soft); }
-  .img-upload-text b{ color:var(--ink); }
+  .photo-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .photo-thumb .remove-btn{
+    position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%;
+    background:rgba(0,0,0,0.6); color:#fff; border:none; font-size:13px; line-height:20px;
+    text-align:center; cursor:pointer; padding:0;
+  }
+  .photo-add-tile{
+    aspect-ratio:1.586/1; border-radius:10px; border:1.5px dashed var(--border);
+    display:flex; align-items:center; justify-content:center; color:var(--primary);
+    font-size:22px; cursor:pointer; background:var(--bg);
+  }
+
+  .tile-img-count{
+    position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.6); color:#fff;
+    font-size:10.5px; font-weight:700; padding:3px 7px; border-radius:20px;
+  }
+  .lightbox-nav{
+    position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px;
+    border-radius:50%; background:rgba(255,255,255,0.15); color:#fff; border:none;
+    font-size:20px; cursor:pointer; display:none;
+  }
+  .lightbox-nav.prev{ left:12px; } .lightbox-nav.next{ right:12px; }
+  .lightbox-dots{
+    position:absolute; bottom:calc(20px + env(safe-area-inset-bottom,0px)); left:0; right:0;
+    display:flex; justify-content:center; gap:6px;
+  }
+  .lightbox-dots span{ width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.35); }
+  .lightbox-dots span.active{ background:#fff; }
 </style>
 </head>
 <body>
@@ -293,11 +351,9 @@
     <div class="sheet-handle"></div>
     <h2 id="cardSheetTitle">Add card</h2>
 
-    <label class="img-upload" for="cImgInput">
-      <div class="img-upload-preview" id="cImgPreview">No image</div>
-      <div class="img-upload-text"><b>Card ka photo</b><br>Tap karke upload karo (optional)</div>
-    </label>
-    <input type="file" id="cImgInput" accept="image/*" style="display:none;">
+    <label>Card ki photos (front, back, jitni chahiye)</label>
+    <div class="photo-grid" id="photoGrid"></div>
+    <input type="file" id="cImgInput" accept="image/*" multiple style="display:none;">
 
     <div class="field">
       <label>Card ka naam</label>
@@ -340,6 +396,14 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose">&times;</button>
+  <button class="lightbox-nav prev" id="lightboxPrev">&#8249;</button>
+  <img id="lightboxImg" src="" alt="Card photo">
+  <button class="lightbox-nav next" id="lightboxNext">&#8250;</button>
+  <div class="lightbox-dots" id="lightboxDots"></div>
+</div>
 
 <script>
 const STORAGE_KEY = 'cardwise-data-v1';
@@ -505,13 +569,32 @@ function uniqueSections(){
   return [...new Set(data.map(d=>d.section))];
 }
 
+function scoreItem(item, q){
+  const name = item.name.toLowerCase();
+  const mode = (item.mode||'').toLowerCase();
+  if(name.startsWith(q)) return 0;
+  if(name.includes(q)) return 1;
+  if(mode.startsWith(q)) return 2;
+  if(mode.includes(q)) return 3;
+  if((item.section||'').toLowerCase().includes(q)) return 4;
+  if((item.note||'').toLowerCase().includes(q)) return 5;
+  return 6;
+}
+
 function render(){
   const q = searchInput.value.trim().toLowerCase();
   searchWrap.classList.toggle('has-val', q.length>0);
 
-  const filtered = q
-    ? data.filter(d => (d.name+' '+d.mode+' '+d.section+' '+(d.note||'')).toLowerCase().includes(q))
-    : data;
+  if(q.length === 0){
+    resultsEl.innerHTML = `<div class="empty-state">
+      <div class="glyph">⌨️</div>
+      <p><strong>Type karo apna use case</strong></p>
+      <p>e.g. "Swiggy", "MMT", "insurance" — best card turant dikh jayega.</p>
+    </div>`;
+    return;
+  }
+
+  let filtered = data.filter(d => (d.name+' '+d.mode+' '+d.section+' '+(d.note||'')).toLowerCase().includes(q));
 
   if(filtered.length === 0){
     resultsEl.innerHTML = `<div class="empty-state">
@@ -522,29 +605,23 @@ function render(){
     return;
   }
 
-  const bySection = {};
-  filtered.forEach(item=>{
-    (bySection[item.section] = bySection[item.section] || []).push(item);
-  });
+  filtered.sort((a,b)=> scoreItem(a,q) - scoreItem(b,q));
+  const top = filtered.slice(0, 2);
 
   let html = '';
-  Object.keys(bySection).forEach(section=>{
-    html += `<div class="section"><div class="section-title">${escapeHtml(section)}</div>`;
-    bySection[section].forEach(item=>{
-      html += `<div class="item" data-id="${item.id}">
-        <div class="item-top">
-          <div class="item-name">${escapeHtml(item.name)}${item.custom ? '<span class="custom-tag">Custom</span>' : ''}</div>
-          ${item.rate ? `<div class="item-badge mono">${escapeHtml(item.rate)}</div>` : ''}
-        </div>
-        <div class="item-mode">Use: <b>${escapeHtml(item.mode)}</b></div>
-        ${item.note ? `<div class="item-note">${escapeHtml(item.note)}</div>` : ''}
-      </div>`;
-    });
-    html += `</div>`;
+  top.forEach(item=>{
+    html += `<div class="result-card" data-id="${item.id}">
+      <div class="result-top">
+        <div class="result-mode">${escapeHtml(item.mode)}</div>
+        ${item.rate ? `<div class="item-badge mono">${escapeHtml(item.rate)}</div>` : ''}
+      </div>
+      <div class="result-for">${escapeHtml(item.name)}${item.custom ? '<span class="custom-tag">Custom</span>' : ''}</div>
+      ${item.note ? `<div class="item-note">${escapeHtml(item.note)}</div>` : ''}
+    </div>`;
   });
   resultsEl.innerHTML = html;
 
-  document.querySelectorAll('.item').forEach(el=>{
+  document.querySelectorAll('.result-card').forEach(el=>{
     el.addEventListener('click', ()=> openEdit(parseInt(el.dataset.id)));
   });
 }
@@ -633,8 +710,12 @@ render();
 /* ---------- My Cards wallet ---------- */
 const CARDS_KEY = 'cardwise-mycards-v1';
 let myCards = JSON.parse(localStorage.getItem(CARDS_KEY) || '[]');
+myCards.forEach(c=>{
+  if(!c.images){ c.images = c.img ? [c.img] : []; }
+  delete c.img;
+});
 let editingCardId = null;
-let pendingImg = null;
+let pendingImages = [];
 
 const cardsGrid = document.getElementById('cardsGrid');
 const recommendView = document.getElementById('recommendView');
@@ -642,7 +723,7 @@ const myCardsView = document.getElementById('myCardsView');
 const cardSheetBackdrop = document.getElementById('cardSheetBackdrop');
 const cardSheetTitle = document.getElementById('cardSheetTitle');
 const cImgInput = document.getElementById('cImgInput');
-const cImgPreview = document.getElementById('cImgPreview');
+const photoGrid = document.getElementById('photoGrid');
 const cName = document.getElementById('cName');
 const cBank = document.getElementById('cBank');
 const cNetwork = document.getElementById('cNetwork');
@@ -669,14 +750,27 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   if(activeTab==='mycards') openCardAdd(); else openAdd();
 });
 
-function saveCards(){ localStorage.setItem(CARDS_KEY, JSON.stringify(myCards)); }
+function saveCards(){
+  try{
+    localStorage.setItem(CARDS_KEY, JSON.stringify(myCards));
+    return true;
+  }catch(e){
+    showToast('Photo save nahi hui — storage full hai, chhoti photo try karo');
+    return false;
+  }
+}
 
 function renderCards(){
   let html = '';
   myCards.forEach(c=>{
+    const imgs = c.images || [];
     html += `<div class="card-tile" data-id="${c.id}">
-      ${c.img
-        ? `<img class="card-tile-img" src="${c.img}" alt="${escapeHtml(c.name)}">`
+      ${imgs.length
+        ? `<div class="tile-img-wrap">
+             <img class="card-tile-img" src="${imgs[0]}" alt="${escapeHtml(c.name)}">
+             <button class="tile-view-btn" data-view="${c.id}">⤢</button>
+             ${imgs.length > 1 ? `<div class="tile-img-count">${imgs.length} photos</div>` : ''}
+           </div>`
         : `<div class="card-tile-img placeholder">${escapeHtml(c.name || 'Card')}</div>`}
       <div class="card-tile-body">
         <div class="card-tile-name">${escapeHtml(c.name)}</div>
@@ -691,14 +785,78 @@ function renderCards(){
   document.querySelectorAll('.card-tile').forEach(el=>{
     el.addEventListener('click', ()=> openCardEdit(parseInt(el.dataset.id)));
   });
+  document.querySelectorAll('.tile-view-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const c = myCards.find(x=>x.id===parseInt(btn.dataset.view));
+      if(c && c.images && c.images.length) openLightbox(c.images, 0);
+    });
+  });
   document.getElementById('addCardTile').addEventListener('click', openCardAdd);
+}
+
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+const lightboxPrev = document.getElementById('lightboxPrev');
+const lightboxNext = document.getElementById('lightboxNext');
+const lightboxDots = document.getElementById('lightboxDots');
+let lightboxImages = [];
+let lightboxIndex = 0;
+
+function renderLightbox(){
+  lightboxImg.src = lightboxImages[lightboxIndex];
+  const multi = lightboxImages.length > 1;
+  lightboxPrev.style.display = multi ? 'block' : 'none';
+  lightboxNext.style.display = multi ? 'block' : 'none';
+  lightboxDots.innerHTML = multi
+    ? lightboxImages.map((_, i)=> `<span class="${i===lightboxIndex ? 'active' : ''}"></span>`).join('')
+    : '';
+}
+function openLightbox(images, startIndex){
+  lightboxImages = images;
+  lightboxIndex = startIndex || 0;
+  renderLightbox();
+  lightbox.classList.add('open');
+}
+function closeLightbox(){ lightbox.classList.remove('open'); lightboxImg.src=''; }
+document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+lightbox.addEventListener('click', (e)=>{ if(e.target===lightbox) closeLightbox(); });
+lightboxPrev.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  lightboxIndex = (lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length;
+  renderLightbox();
+});
+lightboxNext.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  lightboxIndex = (lightboxIndex + 1) % lightboxImages.length;
+  renderLightbox();
+});
+
+function renderPhotoGrid(){
+  let html = '';
+  pendingImages.forEach((src, i)=>{
+    html += `<div class="photo-thumb">
+      <img src="${src}">
+      <button class="remove-btn" data-remove="${i}">&times;</button>
+    </div>`;
+  });
+  html += `<div class="photo-add-tile" id="photoAddTile">+</div>`;
+  photoGrid.innerHTML = html;
+
+  photoGrid.querySelectorAll('.remove-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      pendingImages.splice(parseInt(btn.dataset.remove), 1);
+      renderPhotoGrid();
+    });
+  });
+  document.getElementById('photoAddTile').addEventListener('click', ()=> cImgInput.click());
 }
 
 function resetCardForm(){
   cName.value=''; cBank.value=''; cNetwork.value='Visa'; cLast4.value=''; cFee.value=''; cBenefit.value='';
-  pendingImg = null;
-  cImgPreview.innerHTML = 'No image';
-  cImgPreview.style.padding='0';
+  pendingImages = [];
+  renderPhotoGrid();
 }
 
 function openCardAdd(){
@@ -716,38 +874,43 @@ function openCardEdit(id){
   cardSheetTitle.textContent = 'Edit card';
   cName.value = c.name; cBank.value = c.bank||''; cNetwork.value = c.network||'Visa';
   cLast4.value = c.last4||''; cFee.value = c.fee||''; cBenefit.value = c.benefit||'';
-  pendingImg = c.img || null;
-  if(pendingImg){
-    cImgPreview.innerHTML = `<img src="${pendingImg}" style="width:100%;height:100%;object-fit:cover;border-radius:7px;">`;
-  } else {
-    cImgPreview.innerHTML = 'No image';
-  }
+  pendingImages = [...(c.images || [])];
+  renderPhotoGrid();
   cDeleteRow.style.display = 'flex';
   cardSheetBackdrop.classList.add('open');
 }
 
 function closeCardSheet(){ cardSheetBackdrop.classList.remove('open'); }
 
-cImgInput.addEventListener('change', (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev)=>{
-    const img = new Image();
-    img.onload = ()=>{
-      const maxW = 480;
-      const scale = Math.min(1, maxW / img.width);
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      pendingImg = canvas.toDataURL('image/jpeg', 0.8);
-      cImgPreview.innerHTML = `<img src="${pendingImg}" style="width:100%;height:100%;object-fit:cover;border-radius:7px;">`;
+function compressImage(file){
+  return new Promise((resolve)=>{
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const maxW = 480;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.src = ev.target.result;
     };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
+  });
+}
+
+cImgInput.addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files);
+  for(const file of files){
+    const compressed = await compressImage(file);
+    pendingImages.push(compressed);
+  }
+  renderPhotoGrid();
+  cImgInput.value = '';
 });
 
 function saveCard(){
@@ -755,18 +918,24 @@ function saveCard(){
   if(!name){ showToast('Card ka naam daalo'); return; }
   const payload = {
     name, bank: cBank.value.trim(), network: cNetwork.value, last4: cLast4.value.trim(),
-    fee: cFee.value.trim(), benefit: cBenefit.value.trim(), img: pendingImg
+    fee: cFee.value.trim(), benefit: cBenefit.value.trim(), images: pendingImages
   };
+  let isNew = false;
+  let newId = null;
   if(editingCardId){
     const c = myCards.find(x=>x.id===editingCardId);
     Object.assign(c, payload);
-    showToast('Card update ho gaya');
   } else {
-    const newId = myCards.length ? Math.max(...myCards.map(x=>x.id))+1 : 1;
+    isNew = true;
+    newId = myCards.length ? Math.max(...myCards.map(x=>x.id))+1 : 1;
     myCards.push({ id:newId, ...payload });
-    showToast('Card add ho gaya');
   }
-  saveCards();
+  const ok = saveCards();
+  if(!ok){
+    if(isNew) myCards = myCards.filter(x=>x.id!==newId);
+    return;
+  }
+  showToast(editingCardId ? 'Card update ho gaya' : 'Card add ho gaya');
   closeCardSheet();
   renderCards();
 }

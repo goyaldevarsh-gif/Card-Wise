@@ -227,6 +227,23 @@
     font-size:12.5px; margin-bottom:16px; line-height:1.4; font-weight:500;
   }
 
+  .hierarchy-link{
+    display:block; width:100%; text-align:left; background:none; border:none;
+    color:var(--primary); font-size:12.5px; font-weight:600; padding:0 2px 16px; cursor:pointer;
+  }
+
+  .hierarchy-step{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:14px; margin-bottom:10px;
+  }
+  .hierarchy-step-num{
+    display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;
+    border-radius:50%; background:var(--primary); color:var(--primary-ink); font-size:11px;
+    font-weight:700; margin-right:8px; flex-shrink:0;
+  }
+  .hierarchy-step-title{ font-size:14px; font-weight:700; display:flex; align-items:center; margin-bottom:6px; }
+  .hierarchy-step-body{ font-size:12.5px; color:var(--ink-soft); line-height:1.5; padding-left:30px; }
+
   /* My Cards wallet */
   #cardsGrid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
@@ -304,7 +321,13 @@
   .detail-fee-box b{ font-family:'JetBrains Mono'; color:var(--ink); }
   .detail-section{ margin-bottom:18px; }
   .detail-section-title{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-bottom:9px; }
-  .detail-benefit{ font-size:13.5px; line-height:1.5; color:var(--ink); }
+  .benefit-item{
+    display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border);
+  }
+  .benefit-item:last-child{ border-bottom:none; }
+  .benefit-item .dot{ color:var(--accent); font-weight:800; flex-shrink:0; }
+  .benefit-item-title{ font-size:13.5px; font-weight:700; }
+  .benefit-item-desc{ font-size:12px; color:var(--ink-soft); margin-top:2px; line-height:1.4; }
   .reward-row{
     display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
     padding:10px 0; border-bottom:1px solid var(--border);
@@ -354,6 +377,7 @@
 <main>
   <div id="recommendView">
     <div class="top-note" id="topNote">Offers change often — jo entry purani lage, usse tap karke edit kar do.</div>
+    <button class="hierarchy-link" id="hierarchyLink">Card na ho toh? UPI ya Cash ka rule dekho →</button>
     <div id="results"></div>
   </div>
 
@@ -445,10 +469,9 @@
       <label>Annual fee / waiver condition</label>
       <input type="text" id="cFee" placeholder="e.g. ₹500, waived on ₹2L spend">
     </div>
-    <div class="field">
-      <label>Key benefit (one line)</label>
-      <textarea id="cBenefit" placeholder="e.g. 10% cashback on Swiggy app, cap ₹1,500/cycle"></textarea>
-    </div>
+    <label style="display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;">Additional benefits — golf, lounge, device protection, EMI, kuch bhi extra</label>
+    <div id="benefitsList"></div>
+    <button class="btn btn-ghost" id="addBenefitBtn" type="button" style="width:100%; margin-bottom:18px;">+ Ek aur benefit add karo</button>
     <div class="sheet-actions">
       <button class="btn btn-ghost" id="cCancelBtn">Cancel</button>
       <button class="btn btn-primary" id="cSaveBtn">Save</button>
@@ -461,6 +484,26 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="sheet-backdrop" id="hierarchyBackdrop">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>Card na ho toh kya use karein</h2>
+    <div class="hierarchy-step">
+      <div class="hierarchy-step-title"><span class="hierarchy-step-num">1</span>Card (default)</div>
+      <div class="hierarchy-step-body">Jo bhi category match kare, wahi card nikalo — Best Card tab mein search karo.</div>
+    </div>
+    <div class="hierarchy-step">
+      <div class="hierarchy-step-title"><span class="hierarchy-step-num">2</span>UPI</div>
+      <div class="hierarchy-step-body">Sirf <b>Scapia RuPay</b> UPI se link hota hai (PhonePe/GPay/Paytm mein) — baaki koi card UPI se link nahi hota. Chhoti dukaan sirf QR leti hai ya card handy nahi hai, toh Scapia RuPay wala UPI use karo — 5% base milta hai.</div>
+    </div>
+    <div class="hierarchy-step">
+      <div class="hierarchy-step-title"><span class="hierarchy-step-num">3</span>Cash</div>
+      <div class="hierarchy-step-body">Sirf jab dono na chale — bahut chhota vendor, digital payment nahi leta. Koi reward nahi milta, isliye last resort hi rakho.</div>
+    </div>
+    <button class="btn btn-primary" id="hierarchyCloseBtn" style="width:100%; margin-top:6px;">Samajh gaya</button>
+  </div>
+</div>
+
 <div class="sheet-backdrop" id="detailBackdrop">
   <div class="sheet detail-sheet">
     <div class="sheet-handle"></div>
@@ -471,8 +514,8 @@
     </div>
     <div class="detail-fee-box" id="dFeeBox"></div>
     <div class="detail-section" id="dBenefitSection">
-      <div class="detail-section-title">Notable feature</div>
-      <div class="detail-benefit" id="dBenefit"></div>
+      <div class="detail-section-title">Additional benefits</div>
+      <div id="dBenefitsList"></div>
     </div>
     <div class="detail-section">
       <div class="detail-section-title">Where this card is best used</div>
@@ -498,8 +541,8 @@ const STORAGE_KEY = 'cardwise-data-v1';
 
 const DEFAULT_DATA = [
 ["Food & Quick Commerce",[
-  ["Swiggy (Food / Instamart / Dineout)","swiggy instamart dineout food delivery",[
-    ["Swiggy HDFC Card","10%","Cap ₹1,500/cycle. Min ₹249 for 10% on app spends."]]],
+  ["Swiggy (Food / Instamart / Dineout / Genie)","swiggy instamart dineout genie food delivery",[
+    ["Swiggy HDFC Card","10%","Confirmed on HDFC's own page. Cap ₹1,500/cycle. Note: the 1% base rate excludes fuel, rent, EMI, wallet, jewellery and government transactions entirely."]]],
   ["Zepto","zepto quick commerce grocery",[
     ["Swiggy HDFC Card","1%","Not accelerated — switch this spend to Swiggy Instamart for 10% instead."]]],
   ["Blinkit","blinkit quick commerce grocery",[
@@ -508,8 +551,9 @@ const DEFAULT_DATA = [
     ["Amazon Pay ICICI","2%","Via Amazon Pay Login & Pay route."],
     ["Altura+","1.5%","POS-style fallback if Amazon Pay route not used."]]],
   ["BigBasket / grocery","bigbasket grocery supermarket",[
-    ["Amazon Pay ICICI","1%","Base rate."],
-    ["Altura+","1.5%","POS cashback, close alternative."]]],
+    ["Altura+","1.5%","POS cashback."],
+    ["Scapia","10%","Confirmed base Visa rate from the app — beats the old 1% fallback here."],
+    ["Amazon Pay ICICI","1%","Weakest option here now — use only if the other two aren't handy."]]],
   ["Offline restaurants / cafes","restaurant cafe dining offline",[
     ["IDFC First Millennia","~1.25%","10X dining category, no minimum spend needed now."]]],
   ["Movies (BookMyShow)","movie movies bookmyshow bms cinema pvr inox ticket district",[
@@ -517,14 +561,16 @@ const DEFAULT_DATA = [
 ]],
 ["Travel — Domestic",[
   ["Domestic flights / hotels","flight hotel booking domestic travel",[
-    ["Scapia (in-app booking)","4%","Book via Scapia app itself to get the accelerated rate."]]],
+    ["Scapia (in-app booking)","20%","Confirmed from the Scapia app itself — 20% coins on Travel booked in-app."]]],
   ["Bus / train (IRCTC)","bus train irctc railway",[
-    ["Scapia app","1-4%","If listed in-app for the route."],
+    ["Scapia app","20%","If booked via Scapia app (IRCTC-authorised partner)."],
     ["IDFC First Millennia","~1%","Base 1X, fair-usage capped."]]],
   ["Cabs (Uber / Ola)","uber ola cab taxi",[
     ["Swiggy HDFC Card","5%","Local Cabs MCC category."]]],
   ["Domestic airport lounge","lounge airport domestic",[
-    ["Scapia","Free","Unlocks at ₹20,000/month combined Visa+RuPay spend."]]],
+    ["Scapia","Free","Unlocks at ₹20,000/month combined Visa+RuPay spend. Also unlocks up to ₹1,000 dine/shop/spa privilege."]]],
+  ["Railway lounge access","railway lounge station",[
+    ["Altura+","Free","Confirmed on AU's own card page — 8 complimentary railway lounge visits per year."]]],
   ["Fuel / petrol (IOCL)","fuel petrol diesel iocl indian oil pump",[
     ["HDFC Indian Oil","5%","Capped Fuel Points, resets monthly."]]],
   ["Car rental","car rental self drive zoomcar",[
@@ -532,7 +578,7 @@ const DEFAULT_DATA = [
 ]],
 ["Travel Booking Platforms",[
   ["MakeMyTrip (MMT)","makemytrip mmt flight hotel",[
-    ["Scapia app","4%","Standing in-app booking rate — check same fare via Scapia app before booking on MMT."],
+    ["Scapia app","20%","Confirmed in-app rate — check same fare via Scapia app before booking on MMT."],
     ["Compare price first","-","No standing card benefit specific to MMT — bank promos here rotate and aren't reliable to plan around."]]],
   ["Goibibo","goibibo flight hotel",[
     ["Compare price first","-","No standing card benefit here — pick cheapest fare, pay via Scapia for zero forex if international."]]],
@@ -547,23 +593,23 @@ const DEFAULT_DATA = [
   ["EaseMyTrip","easemytrip flight",[
     ["Compare price first","-","No standing card benefit here."]]],
   ["Scapia app (in-house booking)","scapia app booking",[
-    ["Scapia","4%","The most reliable way to actually get the accelerated rate — this is the card's own product mechanic, not a rotating deal."]]],
+    ["Scapia","20%","Confirmed from the app itself — 20% coins on all Travel and Store bookings."]]],
 ]],
 ["International",[
   ["International flights / hotels","international flight hotel abroad",[
-    ["Scapia","4% + 0% forex","Book via Scapia app for both benefits together."]]],
+    ["Scapia","20% + 0% forex","Book via Scapia app for both benefits together."]]],
   ["Forex / currency spends","forex currency exchange abroad international",[
     ["Scapia","0% markup","Zero forex markup — best of all cards for this."]]],
   ["International lounge access","international lounge airport",[
     ["—","Gap","None of the current cards cover this — worth flagging if int'l travel increases."]]],
   ["Visa application fees","visa application fee embassy",[
-    ["Scapia","0% forex","Avoids the 3.5% markup other cards would add."]]],
+    ["Scapia","20%","Visa applications booked via Scapia app also earn the 20% Travel rate, plus 0% forex."]]],
   ["Travel insurance (int'l)","travel insurance international",[
     ["Amazon Pay ICICI","1%","Weak across the board — no card specializes here."]]],
   ["Overseas SIM / roaming","sim roaming data abroad",[
     ["Scapia","0% forex",""]]],
   ["Duty-free shopping","duty free airport shopping",[
-    ["Scapia","0% forex",""]]],
+    ["Scapia","up to ₹2,000 free","On international flights worth ₹40,000+, confirmed from the app's own airport privileges."]]],
   ["International conference / CME fees","international conference cme fee",[
     ["Scapia","0% forex","If paid by card in foreign currency."]]],
   ["Foreign course / university fees","foreign university course fee",[
@@ -575,15 +621,18 @@ const DEFAULT_DATA = [
 ]],
 ["Shopping",[
   ["Amazon","amazon shopping",[
-    ["Amazon Pay ICICI","5%","Prime members; 3% non-Prime."]]],
+    ["Amazon Pay ICICI","5%","Confirmed on Amazon's own card page — unlimited 5% for Prime; 3% non-Prime. Zero fees, lifetime free."]]],
+  ["Amazon Flights / Hotels","amazon flights hotels travel amazon.in",[
+    ["Amazon Pay ICICI","5%","Confirmed — Amazon's own card page lists Flights & Hotels booked on Amazon.in under the same unlimited 5% as Shopping."]]],
   ["Flipkart / Myntra / Nykaa","flipkart myntra nykaa fashion apparel",[
     ["Swiggy HDFC Card","5%","Separate online-merchant cap."]]],
   ["Sneakers / fragrances / electronics","sneakers fragrance electronics gadget",[
     ["Swiggy HDFC Card","5%","If merchant is in the 5% MCC list."],
-    ["Amazon Pay ICICI","1%","Fallback base rate."]]],
+    ["Scapia","10%","Confirmed base Visa rate — better than Amazon Pay if not on the 5% list."],
+    ["Altura+","Free protection","For mobile/electronics specifically — confirmed complimentary device insurance + extended warranty on AU's own card page, on top of whatever cashback the purchase earns."]]],
   ["Furniture / home decor","furniture home decor",[
-    ["Amazon Pay ICICI","1%",""],
-    ["Altura+","1.5%","POS alternative."]]],
+    ["Altura+","1.5%","POS cashback."],
+    ["Scapia","10%","Confirmed base Visa rate — check cap before relying on it for big purchases."]]],
   ["Jewelry","jewelry jewellery gold",[
     ["Altura+","1.5%","No exclusion here, unlike most other cards."]]],
 ]],
@@ -592,9 +641,9 @@ const DEFAULT_DATA = [
     ["Swiggy HDFC Card","5%","Netflix, Hotstar included in the 5% list."]]],
   ["Music streaming","music spotify streaming",[
     ["Swiggy HDFC Card","5%",""],
-    ["Amazon Pay ICICI","1%","Fallback base rate."]]],
+    ["Scapia","10%","Confirmed base Visa rate — better than 1% fallback."]]],
   ["Gaming / app purchases","gaming app purchase games",[
-    ["Amazon Pay ICICI","1%","Base rate, no category card exists for this."]]],
+    ["Scapia","10%","Confirmed base Visa rate, no dedicated gaming card exists otherwise."]]],
 ]],
 ["Bills & Utilities",[
   ["Electricity / water / gas","electricity water gas bill utility",[
@@ -609,7 +658,7 @@ const DEFAULT_DATA = [
   ["Pharmacy (1mg / PharmEasy)","pharmacy medicine 1mg pharmeasy",[
     ["Swiggy HDFC Card","5%","Pharmacies MCC category."]]],
   ["Diagnostic labs","diagnostic lab test pathology",[
-    ["Amazon Pay ICICI","1%","Base rate."]]],
+    ["Scapia","10%","Confirmed base Visa rate."]]],
   ["Gym / fitness membership","gym fitness membership cultfit",[
     ["Swiggy HDFC Card","5%","If the gym partner is in the merchant list."]]],
 ]],
@@ -619,14 +668,14 @@ const DEFAULT_DATA = [
   ["Journal subscriptions / APC (foreign billing)","journal subscription apc foreign",[
     ["Scapia","0% forex","Better than Amazon Pay if billed in USD."]]],
   ["Surgical equipment / instruments","surgical equipment instrument",[
-    ["Amazon Pay ICICI","1%",""],
-    ["Altura+","1.5%","Large uncapped spend — no exclusion needed."]]],
+    ["Altura+","1.5%","Large uncapped spend — no exclusion needed."],
+    ["Scapia","10%","Confirmed base Visa rate — verify cap before relying on it for a big-ticket purchase."]]],
   ["Clinic consumables","clinic consumables opd",[
     ["Altura+","1.5%","POS cashback, uncapped-ish."]]],
   ["Software subscriptions (Claude, Canva, hosting)","software subscription saas hosting",[
-    ["Amazon Pay ICICI","1%",""]]],
+    ["Scapia","10%","Confirmed base Visa rate."]]],
   ["Domain / hosting renewals","domain hosting renewal",[
-    ["Amazon Pay ICICI","1%",""]]],
+    ["Scapia","10%","Confirmed base Visa rate."]]],
   ["Medical council / association fees","medical council association fee",[
     ["Altura+","0.25%","No dedicated card benefit exists."]]],
   ["Malpractice / indemnity insurance","malpractice indemnity insurance",[
@@ -636,7 +685,7 @@ const DEFAULT_DATA = [
 ]],
 ["Education",[
   ["Online courses","online course education",[
-    ["Amazon Pay ICICI","1%",""]]],
+    ["Scapia","10%","Confirmed base Visa rate."]]],
   ["Books / e-books","books ebooks",[
     ["Amazon Pay ICICI","5%","If bought via Amazon."]]],
 ]],
@@ -664,7 +713,7 @@ const DEFAULT_DATA = [
   ["Gifts","gifts",[
     ["Swiggy HDFC Card","5%","If bought via Myntra/Amazon-type store."]]],
   ["Office supplies","office supplies stationery",[
-    ["Amazon Pay ICICI","1%",""]]],
+    ["Scapia","10%","Confirmed base Visa rate."]]],
 ]],
 ["Personal Care",[
   ["Salon / spa","salon spa grooming",[
@@ -688,21 +737,21 @@ const DEFAULT_DATA = [
 ]],
 ["Misc",[
   ["Courier / parcel (Porter, Dunzo)","courier parcel porter dunzo",[
-    ["Amazon Pay ICICI","1%","Base rate — no card specializes here."]]],
+    ["Scapia","10%","Confirmed base Visa rate — beats the old 1% fallback."]]],
   ["Event tickets (concerts, sports)","event tickets concert sports",[
     ["Swiggy HDFC Card","5%","Standing Entertainment category benefit per HDFC's own card terms."]]],
   ["Charity / donations","charity donation",[
-    ["Amazon Pay ICICI","1%",""]]],
+    ["Scapia","10%","Confirmed base Visa rate."]]],
   ["Wedding / social event shopping","wedding shopping social event",[
     ["Swiggy HDFC Card","5%","Myntra/Amazon-type categories."]]],
   ["Content creation gear / subscriptions","content creation gear subscription",[
-    ["Amazon Pay ICICI","1%",""]]],
+    ["Scapia","10%","Confirmed base Visa rate."]]],
   ["Group trip expenses","group trip travel expenses",[
-    ["Scapia","4%","Travel-related, book via app where possible."]]],
+    ["Scapia","20%","Confirmed rate — book via app where possible."]]],
 ]]
 ];
 
-const CONTENT_VERSION = 2;
+const CONTENT_VERSION = 6;
 
 // Flatten DEFAULT_DATA into a lookup by name, for patching existing installs.
 function defaultDataLookup(){
@@ -741,6 +790,32 @@ function patchStaleContent(parsed){
     oldMovies.options = lookup['Movies (BookMyShow)'].options;
     oldMovies.tags = lookup['Movies (BookMyShow)'].tags;
   }
+
+  // Old "Swiggy (Food / Instamart / Dineout)" got renamed to include Genie — carry it over.
+  const oldSwiggy = patched.find(i => i.custom === false && i.name === 'Swiggy (Food / Instamart / Dineout)');
+  if(oldSwiggy && lookup['Swiggy (Food / Instamart / Dineout / Genie)']){
+    oldSwiggy.name = 'Swiggy (Food / Instamart / Dineout / Genie)';
+    oldSwiggy.options = lookup['Swiggy (Food / Instamart / Dineout / Genie)'].options;
+    oldSwiggy.tags = lookup['Swiggy (Food / Instamart / Dineout / Genie)'].tags;
+  }
+
+  // New in v5: Amazon Flights/Hotels wasn't tracked before — add it if it's genuinely missing.
+  function injectIfMissing(name, fallbackSection){
+    if(!patched.some(i => i.name === name) && lookup[name]){
+      const anchor = patched.find(i => i.section === fallbackSection);
+      const newId = patched.length ? Math.max(...patched.map(x=>x.id))+1 : 1;
+      patched.push({
+        id: newId,
+        section: anchor ? anchor.section : fallbackSection,
+        name,
+        tags: lookup[name].tags,
+        options: lookup[name].options,
+        custom: false
+      });
+    }
+  }
+  injectIfMissing('Amazon Flights / Hotels', 'Shopping');
+  injectIfMissing('Railway lounge access', 'Travel — Domestic');
 
   localStorage.setItem('cardwise-content-version', CONTENT_VERSION.toString());
   return patched;
@@ -983,6 +1058,11 @@ function del(){
 }
 
 searchInput.addEventListener('input', render);
+
+const hierarchyBackdrop = document.getElementById('hierarchyBackdrop');
+document.getElementById('hierarchyLink').addEventListener('click', ()=> hierarchyBackdrop.classList.add('open'));
+document.getElementById('hierarchyCloseBtn').addEventListener('click', ()=> hierarchyBackdrop.classList.remove('open'));
+hierarchyBackdrop.addEventListener('click', (e)=>{ if(e.target===hierarchyBackdrop) hierarchyBackdrop.classList.remove('open'); });
 clearBtn.addEventListener('click', ()=>{ searchInput.value=''; render(); searchInput.focus(); });
 document.getElementById('cancelBtn').addEventListener('click', closeSheet);
 document.getElementById('saveBtn').addEventListener('click', save);
@@ -997,9 +1077,14 @@ let myCards = JSON.parse(localStorage.getItem(CARDS_KEY) || '[]');
 myCards.forEach(c=>{
   if(!c.images){ c.images = c.img ? [c.img] : []; }
   delete c.img;
+  if(!c.benefits){
+    c.benefits = c.benefit ? [{ title:'Notable feature', desc:c.benefit }] : [];
+  }
+  delete c.benefit;
 });
 let editingCardId = null;
 let pendingImages = [];
+let pendingBenefits = [];
 
 const cardsGrid = document.getElementById('cardsGrid');
 const recommendView = document.getElementById('recommendView');
@@ -1015,7 +1100,8 @@ const cBank = document.getElementById('cBank');
 const cNetwork = document.getElementById('cNetwork');
 const cLast4 = document.getElementById('cLast4');
 const cFee = document.getElementById('cFee');
-const cBenefit = document.getElementById('cBenefit');
+const benefitsList = document.getElementById('benefitsList');
+const addBenefitBtn = document.getElementById('addBenefitBtn');
 const cDeleteRow = document.getElementById('cDeleteRow');
 
 let activeTab = 'recommend';
@@ -1140,12 +1226,40 @@ function renderPhotoGrid(){
   autoFillBtn.style.display = pendingImages.length ? 'block' : 'none';
 }
 
+function renderBenefitsForm(){
+  benefitsList.innerHTML = pendingBenefits.map((b, i)=> `
+    <div class="option-row" data-i="${i}">
+      <button class="option-remove" data-remove-benefit="${i}" type="button">&times;</button>
+      <div class="field"><label>Title</label><input type="text" data-bfield="title" data-i="${i}" value="${escapeHtml(b.title)}" placeholder="e.g. Golf benefits"></div>
+      <div class="field"><label>Detail</label><input type="text" data-bfield="desc" data-i="${i}" value="${escapeHtml(b.desc||'')}" placeholder="e.g. 12 free lessons + 4 green fee rounds/year"></div>
+    </div>`).join('');
+
+  benefitsList.querySelectorAll('[data-bfield]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const i = parseInt(inp.dataset.i);
+      pendingBenefits[i][inp.dataset.bfield] = inp.value;
+    });
+  });
+  benefitsList.querySelectorAll('[data-remove-benefit]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      pendingBenefits.splice(parseInt(btn.dataset.removeBenefit), 1);
+      renderBenefitsForm();
+    });
+  });
+}
+addBenefitBtn.addEventListener('click', ()=>{
+  pendingBenefits.push({ title:'', desc:'' });
+  renderBenefitsForm();
+});
+
 function resetCardForm(){
-  cName.value=''; cBank.value=''; cNetwork.value='Visa'; cLast4.value=''; cFee.value=''; cBenefit.value='';
+  cName.value=''; cBank.value=''; cNetwork.value='Visa'; cLast4.value=''; cFee.value='';
   pendingImages = [];
+  pendingBenefits = [];
   ocrStatus.style.display = 'none';
   ocrStatus.textContent = '';
   renderPhotoGrid();
+  renderBenefitsForm();
 }
 
 const detailBackdrop = document.getElementById('detailBackdrop');
@@ -1154,7 +1268,7 @@ const dName = document.getElementById('dName');
 const dMeta = document.getElementById('dMeta');
 const dFeeBox = document.getElementById('dFeeBox');
 const dBenefitSection = document.getElementById('dBenefitSection');
-const dBenefit = document.getElementById('dBenefit');
+const dBenefitsList = document.getElementById('dBenefitsList');
 const dRewardRows = document.getElementById('dRewardRows');
 let detailCardId = null;
 
@@ -1196,9 +1310,13 @@ function openCardDetail(id){
     ? `Annual fee: <b>${escapeHtml(c.fee)}</b>`
     : `<span class="detail-empty">Fee details add nahi ki hain — Edit se add karo.</span>`;
 
-  if(c.benefit){
+  const benefits = c.benefits || [];
+  if(benefits.length){
     dBenefitSection.style.display = 'block';
-    dBenefit.textContent = c.benefit;
+    dBenefitsList.innerHTML = benefits.map(b => `<div class="benefit-item">
+        <span class="dot">•</span>
+        <div><div class="benefit-item-title">${escapeHtml(b.title)}</div>${b.desc ? `<div class="benefit-item-desc">${escapeHtml(b.desc)}</div>` : ''}</div>
+      </div>`).join('');
   } else {
     dBenefitSection.style.display = 'none';
   }
@@ -1234,11 +1352,13 @@ function openCardEdit(id){
   editingCardId = id;
   cardSheetTitle.textContent = 'Edit card';
   cName.value = c.name; cBank.value = c.bank||''; cNetwork.value = c.network||'Visa';
-  cLast4.value = c.last4||''; cFee.value = c.fee||''; cBenefit.value = c.benefit||'';
+  cLast4.value = c.last4||''; cFee.value = c.fee||'';
   pendingImages = [...(c.images || [])];
+  pendingBenefits = (c.benefits || []).map(b=>({...b}));
   ocrStatus.style.display = 'none';
   ocrStatus.textContent = '';
   renderPhotoGrid();
+  renderBenefitsForm();
   cDeleteRow.style.display = 'flex';
   cardSheetBackdrop.classList.add('open');
 }
@@ -1338,9 +1458,12 @@ autoFillBtn.addEventListener('click', async ()=>{
 function saveCard(){
   const name = cName.value.trim();
   if(!name){ showToast('Card ka naam daalo'); return; }
+  const benefits = pendingBenefits
+    .map(b=>({ title:(b.title||'').trim(), desc:(b.desc||'').trim() }))
+    .filter(b=>b.title);
   const payload = {
     name, bank: cBank.value.trim(), network: cNetwork.value, last4: cLast4.value.trim(),
-    fee: cFee.value.trim(), benefit: cBenefit.value.trim(), images: pendingImages
+    fee: cFee.value.trim(), benefits, images: pendingImages
   };
   let isNew = false;
   let newId = null;

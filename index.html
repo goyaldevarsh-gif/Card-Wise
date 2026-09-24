@@ -361,7 +361,7 @@
     </div>
     <div>
       <div class="brand-name">CardWise</div>
-      <div class="brand-sub">Type kar, best card turant mil jayega</div>
+      <div class="brand-sub">Type it, get the best card instantly</div>
     </div>
   </div>
   <div class="tabs">
@@ -376,18 +376,18 @@
 
 <main>
   <div id="recommendView">
-    <div class="top-note" id="topNote">Offers change often — jo entry purani lage, usse tap karke edit kar do.</div>
-    <button class="hierarchy-link" id="hierarchyLink">Card na ho toh? UPI ya Cash ka rule dekho →</button>
+    <div class="top-note" id="topNote">Offers change often — if an entry looks outdated, tap it to edit.</div>
+    <button class="hierarchy-link" id="hierarchyLink">No card handy? See the UPI/Cash rule →</button>
     <div id="results"></div>
   </div>
 
   <div id="myCardsView" style="display:none;">
-    <div class="top-note">Apne saare cards yahan add karo — image, network, fee, sab ek jagah.</div>
+    <div class="top-note">Add all your cards here — image, network, fee, everything in one place.</div>
     <div id="cardsGrid"></div>
 
     <div class="backup-section">
       <div class="backup-title">Backup</div>
-      <div class="backup-desc">Cache clear ya naye phone pe jaane se pehle ek backup file bana lo — sab kuch (cards, photos, use-cases) usmein save ho jayega.</div>
+      <div class="backup-desc">Make a backup file before clearing cache or switching phones — everything (cards, photos, use-cases) gets saved in it.</div>
       <div class="backup-actions">
         <button class="btn btn-ghost" id="exportBtn">Export backup</button>
         <button class="btn btn-ghost" id="importBtn">Import backup</button>
@@ -405,7 +405,7 @@
     <div class="sheet-handle"></div>
     <h2 id="sheetTitle">Add use case</h2>
     <div class="field">
-      <label>Use case (naam)</label>
+      <label>Use case (name)</label>
       <input type="text" id="fName" placeholder="e.g. Movie tickets">
     </div>
     <div class="field">
@@ -414,13 +414,13 @@
       <datalist id="sectionList"></datalist>
     </div>
     <div class="field">
-      <label>Related keywords (space se alag, optional)</label>
+      <label>Related keywords (space-separated, optional)</label>
       <input type="text" id="fTags" placeholder="e.g. bookmyshow district pvr">
     </div>
 
-    <label style="display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;">Options — jitne cards/deals is use case pe lagu hain</label>
+    <label style="display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;">Options — as many cards/deals as apply to this use case</label>
     <div id="optionsList"></div>
-    <button class="btn btn-ghost" id="addOptionBtn" type="button" style="width:100%; margin-bottom:18px;">+ Ek aur option add karo</button>
+    <button class="btn btn-ghost" id="addOptionBtn" type="button" style="width:100%; margin-bottom:18px;">+ Add another option</button>
 
     <div class="sheet-actions">
       <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
@@ -437,14 +437,14 @@
     <div class="sheet-handle"></div>
     <h2 id="cardSheetTitle">Add card</h2>
 
-    <label>Card ki photos (front, back, jitni chahiye)</label>
+    <label>Card photos (front, back, as many as you need)</label>
     <div class="photo-grid" id="photoGrid"></div>
     <input type="file" id="cImgInput" accept="image/*" multiple style="display:none;">
-    <button class="btn btn-ghost" id="autoFillBtn" type="button" style="width:100%; margin-bottom:6px; display:none;">✨ Photo se details bharo (try karo)</button>
+    <button class="btn btn-ghost" id="autoFillBtn" type="button" style="width:100%; margin-bottom:6px; display:none;">✨ Fill details from photo (try it)</button>
     <div id="ocrStatus" style="font-size:11.5px; color:var(--ink-soft); text-align:center; margin-bottom:14px; display:none;"></div>
 
     <div class="field">
-      <label>Card ka naam</label>
+      <label>Card name</label>
       <input type="text" id="cName" placeholder="e.g. Swiggy HDFC Card">
     </div>
     <div class="field">
@@ -469,9 +469,9 @@
       <label>Annual fee / waiver condition</label>
       <input type="text" id="cFee" placeholder="e.g. ₹500, waived on ₹2L spend">
     </div>
-    <label style="display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;">Additional benefits — golf, lounge, device protection, EMI, kuch bhi extra</label>
+    <label style="display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;">Additional benefits — golf, lounge, device protection, EMI, anything extra</label>
     <div id="benefitsList"></div>
-    <button class="btn btn-ghost" id="addBenefitBtn" type="button" style="width:100%; margin-bottom:18px;">+ Ek aur benefit add karo</button>
+    <button class="btn btn-ghost" id="addBenefitBtn" type="button" style="width:100%; margin-bottom:18px;">+ Add another benefit</button>
     <div class="sheet-actions">
       <button class="btn btn-ghost" id="cCancelBtn">Cancel</button>
       <button class="btn btn-primary" id="cSaveBtn">Save</button>
@@ -487,20 +487,20 @@
 <div class="sheet-backdrop" id="hierarchyBackdrop">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <h2>Card na ho toh kya use karein</h2>
+    <h2>What to use when you don't have a card</h2>
     <div class="hierarchy-step">
       <div class="hierarchy-step-title"><span class="hierarchy-step-num">1</span>Card (default)</div>
-      <div class="hierarchy-step-body">Jo bhi category match kare, wahi card nikalo — Best Card tab mein search karo.</div>
+      <div class="hierarchy-step-body">Whichever category matches, use that card — search it in the Best Card tab.</div>
     </div>
     <div class="hierarchy-step">
       <div class="hierarchy-step-title"><span class="hierarchy-step-num">2</span>UPI</div>
-      <div class="hierarchy-step-body">Sirf <b>Scapia RuPay</b> UPI se link hota hai (PhonePe/GPay/Paytm mein) — baaki koi card UPI se link nahi hota. Chhoti dukaan sirf QR leti hai ya card handy nahi hai, toh Scapia RuPay wala UPI use karo — 5% base milta hai.</div>
+      <div class="hierarchy-step-body">Only <b>Scapia RuPay</b> is linked to UPI (in PhonePe/GPay/Paytm) — no other card links to UPI. If a small shop only takes QR, or no card is handy, use the Scapia RuPay UPI link — you get 5% base rate.</div>
     </div>
     <div class="hierarchy-step">
       <div class="hierarchy-step-title"><span class="hierarchy-step-num">3</span>Cash</div>
-      <div class="hierarchy-step-body">Sirf jab dono na chale — bahut chhota vendor, digital payment nahi leta. Koi reward nahi milta, isliye last resort hi rakho.</div>
+      <div class="hierarchy-step-body">Only when neither works — a very small vendor who doesn't take digital payments. No reward on cash, so keep it as the last resort.</div>
     </div>
-    <button class="btn btn-primary" id="hierarchyCloseBtn" style="width:100%; margin-top:6px;">Samajh gaya</button>
+    <button class="btn btn-primary" id="hierarchyCloseBtn" style="width:100%; margin-top:6px;">Got it</button>
   </div>
 </div>
 
@@ -567,10 +567,9 @@ const DEFAULT_DATA = [
     ["IDFC First Millennia","~1%","Base 1X, fair-usage capped."]]],
   ["Cabs (Uber / Ola)","uber ola cab taxi",[
     ["Swiggy HDFC Card","5%","Local Cabs MCC category."]]],
-  ["Domestic airport lounge","lounge airport domestic",[
-    ["Scapia","Free","Unlocks at ₹20,000/month combined Visa+RuPay spend. Also unlocks up to ₹1,000 dine/shop/spa privilege."]]],
-  ["Railway lounge access","railway lounge station",[
-    ["Altura+","Free","Confirmed on AU's own card page — 8 complimentary railway lounge visits per year."]]],
+  ["Lounge access","lounge airport domestic railway station",[
+    ["Scapia","Free","Domestic airport lounge — unlocks at ₹20,000/month combined Visa+RuPay spend. Also unlocks up to ₹1,000 dine/shop/spa privilege."],
+    ["Altura+","Free","Railway lounge — confirmed on AU's own card page, 8 complimentary visits per year."]]],
   ["Fuel / petrol (IOCL)","fuel petrol diesel iocl indian oil pump",[
     ["HDFC Indian Oil","5%","Capped Fuel Points, resets monthly."]]],
   ["Car rental","car rental self drive zoomcar",[
@@ -751,7 +750,7 @@ const DEFAULT_DATA = [
 ]]
 ];
 
-const CONTENT_VERSION = 6;
+const CONTENT_VERSION = 7;
 
 // Flatten DEFAULT_DATA into a lookup by name, for patching existing installs.
 function defaultDataLookup(){
@@ -815,7 +814,11 @@ function patchStaleContent(parsed){
     }
   }
   injectIfMissing('Amazon Flights / Hotels', 'Shopping');
-  injectIfMissing('Railway lounge access', 'Travel — Domestic');
+
+  // v7: merge the two separate lounge categories into one "Lounge access" so a "lounge"
+  // search surfaces both Scapia's domestic lounge and Altura+'s railway lounge together.
+  patched = patched.filter(i => !(i.custom === false && (i.name === 'Domestic airport lounge' || i.name === 'Railway lounge access')));
+  injectIfMissing('Lounge access', 'Travel — Domestic');
 
   localStorage.setItem('cardwise-content-version', CONTENT_VERSION.toString());
   return patched;
@@ -893,6 +896,16 @@ function itemSearchText(item){
     item.options.map(o=>o.mode+' '+(o.note||'')).join(' ')).toLowerCase();
 }
 
+const SEARCH_STOPWORDS = new Set(['ke','ki','ka','liye','kaunsa','konsa','kaunsi','kis','kisme','pe','par','se','ko','mein','me','main','hoga','hogi','milega','milegi','card','best','for','on','in','the','a','an','to','do','use','karu','karoon','karna','chahiye','order','with','se','and','ya','or']);
+
+function matchesQuery(item, q){
+  const text = itemSearchText(item);
+  const words = q.split(/\s+/).filter(Boolean);
+  const meaningful = words.filter(w => !SEARCH_STOPWORDS.has(w));
+  const tokens = meaningful.length ? meaningful : words;
+  return tokens.every(w => text.includes(w));
+}
+
 function scoreItem(item, q){
   const name = item.name.toLowerCase();
   const tags = (item.tags||'').toLowerCase();
@@ -911,19 +924,19 @@ function render(){
   if(q.length === 0){
     resultsEl.innerHTML = `<div class="empty-state">
       <div class="glyph">⌨️</div>
-      <p><strong>Type karo apna use case</strong></p>
-      <p>e.g. "movie", "zomato", "insurance" — jo bhi options apply hote hain, sab saath dikh jayenge.</p>
+      <p><strong>Type your use case</strong></p>
+      <p>e.g. "movie", "zomato", "insurance" — every option that applies will show up together.</p>
     </div>`;
     return;
   }
 
-  let filtered = data.filter(d => itemSearchText(d).includes(q));
+  let filtered = data.filter(d => matchesQuery(d, q));
 
   if(filtered.length === 0){
     resultsEl.innerHTML = `<div class="empty-state">
       <div class="glyph">🔍</div>
-      <p><strong>Kuch nahi mila</strong></p>
-      <p>Naya add karne ke liye neeche + dabao.</p>
+      <p><strong>Nothing found</strong></p>
+      <p>Tap + below to add a new one.</p>
     </div>`;
     return;
   }
@@ -1030,18 +1043,18 @@ function save(){
     .filter(o=>o.mode);
 
   if(!name || options.length===0){
-    showToast('Naam aur kam se kam ek card daalo');
+    showToast('Add a name and at least one card');
     return;
   }
 
   if(editingId){
     const item = data.find(d=>d.id===editingId);
     item.name = name; item.section = section; item.tags = tags; item.options = options;
-    showToast('Update ho gaya');
+    showToast('Updated');
   } else {
     const newId = data.length ? Math.max(...data.map(d=>d.id))+1 : 1;
     data.push({ id:newId, section, name, tags, options, custom:true });
-    showToast('Add ho gaya');
+    showToast('Added');
   }
   saveData(data);
   closeSheet();
@@ -1054,7 +1067,7 @@ function del(){
   saveData(data);
   closeSheet();
   render();
-  showToast('Delete ho gaya');
+  showToast('Deleted');
 }
 
 searchInput.addEventListener('input', render);
@@ -1127,7 +1140,7 @@ function saveCards(){
     localStorage.setItem(CARDS_KEY, JSON.stringify(myCards));
     return true;
   }catch(e){
-    showToast('Photo save nahi hui — storage full hai, chhoti photo try karo');
+    showToast('Photo not saved — storage full, try a smaller photo');
     return false;
   }
 }
@@ -1308,7 +1321,7 @@ function openCardDetail(id){
 
   dFeeBox.innerHTML = c.fee
     ? `Annual fee: <b>${escapeHtml(c.fee)}</b>`
-    : `<span class="detail-empty">Fee details add nahi ki hain — Edit se add karo.</span>`;
+    : `<span class="detail-empty">No fee details added yet — tap Edit to add.</span>`;
 
   const benefits = c.benefits || [];
   if(benefits.length){
@@ -1327,7 +1340,7 @@ function openCardDetail(id){
         <div><div class="reward-row-name">${escapeHtml(r.category)}</div>${r.note ? `<div class="reward-row-note">${escapeHtml(r.note)}</div>` : ''}</div>
         ${r.rate ? `<div class="reward-row-rate">${escapeHtml(r.rate)}</div>` : ''}
       </div>`).join('')
-    : `<div class="detail-empty">Best Card tab mein is naam se koi use-case match nahi hua abhi.</div>`;
+    : `<div class="detail-empty">No use-case in the Best Card tab matches this name yet.</div>`;
 
   detailBackdrop.classList.add('open');
 }
@@ -1401,7 +1414,7 @@ const NETWORK_MAP = [['VISA','Visa'],['MASTERCARD','Mastercard'],['RUPAY','RuPay
 
 autoFillBtn.addEventListener('click', async ()=>{
   if(typeof Tesseract === 'undefined'){
-    showToast('OCR library load nahi hui — internet check karo');
+    showToast('OCR library did not load — check your internet');
     return;
   }
   if(!pendingImages.length) return;
@@ -1409,7 +1422,7 @@ autoFillBtn.addEventListener('click', async ()=>{
   autoFillBtn.disabled = true;
   autoFillBtn.textContent = 'Padh raha hoon...';
   ocrStatus.style.display = 'block';
-  ocrStatus.textContent = 'Photo se text nikala ja raha hai, thoda time lagega...';
+  ocrStatus.textContent = 'Reading text from the photo, this will take a moment...';
 
   try{
     const { data: { text } } = await Tesseract.recognize(pendingImages[0], 'eng');
@@ -1442,22 +1455,22 @@ autoFillBtn.addEventListener('click', async ()=>{
     }
 
     if(filled.length){
-      ocrStatus.textContent = `Try kiya: ${filled.join(', ')} — check karke sahi kar lo.`;
-      showToast('Kuch details mil gayi, verify kar lo');
+      ocrStatus.textContent = `Filled in: ${filled.join(', ')} — please double-check it's correct.`;
+      showToast('Found some details, please verify');
     } else {
-      ocrStatus.textContent = 'Kuch clearly padh nahi paya — khud bhar do.';
+      ocrStatus.textContent = 'Could not read anything clearly — fill it in yourself.';
     }
   } catch(err){
-    ocrStatus.textContent = 'OCR fail ho gaya — manually bhar do.';
+    ocrStatus.textContent = 'OCR failed — fill it in manually.';
   } finally {
     autoFillBtn.disabled = false;
-    autoFillBtn.textContent = '✨ Photo se details bharo (try karo)';
+    autoFillBtn.textContent = '✨ Fill details from photo (try it)';
   }
 });
 
 function saveCard(){
   const name = cName.value.trim();
-  if(!name){ showToast('Card ka naam daalo'); return; }
+  if(!name){ showToast('Enter a card name'); return; }
   const benefits = pendingBenefits
     .map(b=>({ title:(b.title||'').trim(), desc:(b.desc||'').trim() }))
     .filter(b=>b.title);
@@ -1480,7 +1493,7 @@ function saveCard(){
     if(isNew) myCards = myCards.filter(x=>x.id!==newId);
     return;
   }
-  showToast(editingCardId ? 'Card update ho gaya' : 'Card add ho gaya');
+  showToast(editingCardId ? 'Card updated' : 'Card added');
   closeCardSheet();
   renderCards();
 }
@@ -1491,7 +1504,7 @@ function deleteCard(){
   saveCards();
   closeCardSheet();
   renderCards();
-  showToast('Card delete ho gaya');
+  showToast('Card deleted');
 }
 
 document.getElementById('cCancelBtn').addEventListener('click', closeCardSheet);
@@ -1510,7 +1523,7 @@ function updateLastBackupNote(){
   const ts = localStorage.getItem(LAST_BACKUP_KEY);
   lastBackupNote.textContent = ts
     ? `Last backup: ${new Date(parseInt(ts)).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}`
-    : 'Abhi tak koi backup nahi liya.';
+    : 'No backup taken yet.';
 }
 
 exportBtn.addEventListener('click', ()=>{
@@ -1529,7 +1542,7 @@ exportBtn.addEventListener('click', ()=>{
   URL.revokeObjectURL(url);
   localStorage.setItem(LAST_BACKUP_KEY, Date.now().toString());
   updateLastBackupNote();
-  showToast('Backup file download ho gayi');
+  showToast('Backup file downloaded');
 });
 
 importBtn.addEventListener('click', ()=> importFileInput.click());
@@ -1542,10 +1555,10 @@ importFileInput.addEventListener('change', (e)=>{
     try{
       const parsed = JSON.parse(ev.target.result);
       if(!parsed.useCases || !parsed.myCards){
-        showToast('Yeh CardWise backup file nahi lagti');
+        showToast('This doesn\'t look like a CardWise backup file');
         return;
       }
-      const ok = confirm('Yeh abhi ka saara data overwrite kar dega is backup se. Continue karein?');
+      const ok = confirm('This will overwrite all current data with this backup. Continue?');
       if(!ok) return;
       data = parsed.useCases;
       myCards = parsed.myCards;
@@ -1553,9 +1566,9 @@ importFileInput.addEventListener('change', (e)=>{
       saveCards();
       render();
       renderCards();
-      showToast('Backup restore ho gaya');
+      showToast('Backup restored');
     } catch(err){
-      showToast('File padhi nahi gayi — sahi backup file try karo');
+      showToast('Could not read the file — try a valid backup file');
     }
   };
   reader.readAsText(file);
